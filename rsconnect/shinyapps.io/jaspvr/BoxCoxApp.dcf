@@ -1,0 +1,13 @@
+name: BoxCoxApp
+title: BoxCoxApp
+username: jaspvr
+account: jaspvr
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 11677862
+bundleId: 8458695
+url: https://jaspvr.shinyapps.io/BoxCoxApp/
+version: 1
+asMultiple: FALSE
+asStatic: FALSE
+ignoredFiles: README.md|testing/20240316_BoxCoxAnalysisofPREVENTData.R|testing/20240316_RawPREVENTDataForBoxcoxAnalysis.csv|testing/AIM_variables.csv
