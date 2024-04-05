@@ -4,6 +4,15 @@ library(openxlsx)
 library(IDPmisc)
 library(glue)
 library(tidyverse)
+library(conflicted)
+
+conflicts_prefer(dplyr::filter)
+
+# Check current working directory
+getwd()
+
+# Set to the directory where your CSV file is located, replace the path below with the actual path
+setwd("/Users/jasperhalvorson/Projects/dataTransform")
 
 #this is just to create a set of graphs without any parameters highlighted
 all_data<-read.csv("20240316_RawPREVENTDataForBoxcoxAnalysis.csv")
