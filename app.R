@@ -16,41 +16,34 @@ conflicts_prefer(dplyr::filter)
 
 # Define UI
 ui <- fluidPage(theme = shinytheme("cerulean"),
-                
-                navbarPage(
-                  "Box-Cox Function App",
-                  
-                  # Tab 1: File Upload
-                  tabPanel("Upload CSV",
-                           sidebarPanel(
-                              fileInput("patientData", "Input Patient Data (CSV)"),
-                              fileInput("AIMVariables", "Input AIM Variables (CSV)"),
-                              downloadButton("download", "Download Transformed Data")
-                           ),
-                           mainPanel(
-                             DTOutput("table1"),
-                             DTOutput("variablesTable")
-                           )
-                  ),
-                  
-                  # Tab 2: About
-                  tabPanel("About",
-                           tags$br(),
-                           tags$p("This is a Shiny web application to transform data using the Box-cox function."),
-                  )
-                )
+  navbarPage(
+    "Box-Cox Function App",
+    
+    # Tab 1: File Upload
+    tabPanel("Upload CSV",
+     sidebarPanel(
+       fileInput("patientData", "Input Patient Data (CSV)"),
+       fileInput("AIMVariables", "Input AIM Variables (CSV)"),
+       downloadButton("download", "Download Transformed Data")
+     ),
+     mainPanel(
+       DTOutput("table1"),
+       DTOutput("variablesTable")
+     )
+    ),
+    
+    # Tab 2: About
+    tabPanel("About",
+     tags$br(),
+     tags$p("This is a Shiny web application to transform data using the Box-cox function."),
+    )
+  )
 )
 
 # Define server function
 server <- function(input, output) {
   # Reactive value to store the path of the last created file
   lastCreatedFile <- reactiveVal()
-  
-  # # Reactive function to read uploaded CSV file
-  # data <- reactive({
-  #   req(input$file)  # Ensure file is uploaded
-  #   read.csv(input$file$datapath, stringsAsFactors = FALSE)
-  # })
   
   # Reactive function to read uploaded Patient Data CSV file
   all_data_raw <- reactive({
