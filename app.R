@@ -22,6 +22,7 @@ ui <- fluidPage(theme = shinytheme("cerulean"),
     # Tab 1: File Upload
     tabPanel("Upload CSV",
      sidebarPanel(
+       numericInput("lambda", "Input Lambda value", value = 0.5),
        fileInput("patientData", "Input Patient Data (CSV)"),
        fileInput("AIMVariables", "Input AIM Variables (CSV)"),
        downloadButton("download", "Download Transformed Data")
@@ -88,9 +89,28 @@ server <- function(input, output) {
   
   # boxcox function (I added a default lambda value of 0.5)
   #default lambda value of 0.5
-  bc <- function(x,l=0.5){if(l==0) return(log(x)) else return((x^l-1)/l)}
+  reactiveLambda <- reactive({
+    input$lambda  # This will be a number because of numericInput
+  })
+  
+  bc <- function(x) {
+    l <- reactiveLambda()
+    if (l == 0) {
+      return(log(x))
+    } else {
+      return((x^l - 1) / l)
+    }
+  }
+  
   # inverse boxcox function
-  ibc <- function(x,l=0.5){if(l==0) return(exp(x)) else return((x*l+1)^(1/l))}
+  ibc <- function(x) {
+    l <- reactiveLambda()
+    if (l == 0) {
+      return(exp(x))
+    } else {
+      return((x * l + 1)^(1 / l))
+    }
+  }
   
   # Assuming all_data is defined as before, we create a new reactive expression for the filtered data
   all_data_filtered <- reactive({
