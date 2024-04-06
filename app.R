@@ -88,8 +88,6 @@ server <- function(input, output) {
   # inverse boxcox function
   ibc <- function(x,l=0.5){if(l==0) return(exp(x)) else return((x*l+1)^(1/l))}
   
-  #var<-"CD4_CD134pCD25p"
-  
   # Assuming all_data is defined as before, we create a new reactive expression for the filtered data
   all_data_filtered <- reactive({
     req(all_data_raw())  # Ensure all_data is available
@@ -102,11 +100,6 @@ server <- function(input, output) {
       filter(Timepoint != "V1" & Timepoint != "6M" & Timepoint != "1Y") %>%
       arrange(Stim, Timepoint, DonorID)
   })
-  
-  
-  # all_data <- all_data %>%
-  #   arrange(Stim, Timepoint, DonorID)
-  # all_data
   
   
   observe({
@@ -126,9 +119,6 @@ server <- function(input, output) {
         dplyr::mutate(Stimulant=fct_recode(Stimulant, COVID_WT="Covid_WT_sum", COVID_BA4_5="Covid_BA4_5_sum")) %>% 
         dplyr::mutate(Timepoint=fct_relevel(Timepoint,"VY","V2","V3"))
       
-      #use lapply to apply the Neg to Zero function to all rows
-      #subtracted_data[[var]] <- lapply(subtracted_data[[var]], Neg_to_Zero)
-      #subtracted_data[[var]] <- unlist(subtracted_data[[var]]) 
       filePath <- glue::glue("PREVENT_Subtracted_{var}.csv")
       subtracted_data <- arrange(subtracted_data, Stimulant, Timepoint, DonorID)
       write.csv(subtracted_data, filePath)
@@ -147,9 +137,6 @@ server <- function(input, output) {
         dplyr::mutate(Stimulant=fct_recode(Stimulant, COVID_WT="Covid_WT_sum", COVID_BA4_5="Covid_BA4_5_sum")) %>% 
         dplyr::mutate(Timepoint=fct_relevel(Timepoint,"VY","V2","V3"))
       
-      #use lapply to apply the Neg to Zero function to all rows
-      #bcxsubtracted_data[[var]] <- lapply(bcxsubtracted_data[[var]], Neg_to_Zero)
-      #bcxsubtracted_data[[var]] <- unlist(bcxsubtracted_data[[var]]) 
       filePath <- glue::glue("PREVENT_Boxcox_{var}.csv")
       bcxsubtracted_data <- arrange(bcxsubtracted_data, Stimulant, Timepoint, DonorID)
       write.csv(bcxsubtracted_data, filePath)
