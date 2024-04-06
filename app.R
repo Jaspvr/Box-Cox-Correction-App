@@ -17,7 +17,7 @@ conflicts_prefer(dplyr::filter)
 # Define UI
 ui <- fluidPage(theme = shinytheme("cerulean"),
   navbarPage(
-    "Box-Cox Function App",
+    "Box-Cox Correction App",
     
     # Tab 1: File Upload
     tabPanel("Upload CSV",
@@ -35,8 +35,12 @@ ui <- fluidPage(theme = shinytheme("cerulean"),
     # Tab 2: About
     tabPanel("About",
      tags$br(),
-     tags$p("This is a Shiny web application to transform data using the Box-cox function."),
-    )
+     tags$p("Analysis of T cell activation-induced marker (AIM) assay data requires normalization of AIM+ cell frequencies to background AIM+ frequencies in an unstimulated control. 
+     Subtracting or dividing by the unstimulated control each have specific disadvantages and can amplify technical variability in the assay. 
+     The Box-Cox correction is an innovative method with features of both division and linear subtraction, allowing a more sophisticated correction for unstimulated AIM+ cell frequencies that better aligns with the mathematical properties of AIM datasets and reduces technical variability."), 
+     tags$br(),
+     tags$p("To take advantage of the Box-Cox correction, upload your full AIM dataset and the set of variables to be corrected. The Box-Cox Correction App will immediately return the corrected values which are then ready for data display or statistical analysis.")
+    ),
   )
 )
 
@@ -76,7 +80,7 @@ server <- function(input, output) {
   # ---------------------------- Box-Cox Calculation Start --------------------------------------------
   
   # Create last set of graphs without any parameters highlighted (variables and data read in above)
-  stimulants<-c("DMSO","Fluzone", "COVID_WT", "COVID_BA4_5")
+  stimulants<-c("DMSO", "Fluzone", "COVID_WT", "COVID_BA4_5", "Cytostim")
   
   Neg_to_Zero<-function(x){
     ifelse((x<=0.005), 0.005, x)
@@ -93,11 +97,8 @@ server <- function(input, output) {
     req(all_data_raw())  # Ensure all_data is available
     data <- all_data_raw()  # Get the data frame
     
-    # Now filter the data frame
+    # Now arrange the data
     data %>% 
-      filter(Stim != "Fluzone" & Stim != "Cytostim") %>%
-      filter(DonorID != "UBC_004" & DonorID != "UBC_059") %>%
-      filter(Timepoint != "V1" & Timepoint != "6M" & Timepoint != "1Y") %>%
       arrange(Stim, Timepoint, DonorID)
   })
   
@@ -107,23 +108,7 @@ server <- function(input, output) {
     allDataValue <- all_data_filtered() # Get the current value of all_data
     variableNames <- variables()$variable # Assuming variables() returns a dataframe with a column 'variable'
     
-    for (var in variableNames) {
-      
-      subtracted_data<-allDataValue %>% 
-        dplyr::select(DonorID:Stim,{{var}}) %>% 
-        tidyr::pivot_wider(names_from = Stim, values_from = {{var}}) %>% 
-        dplyr::mutate(Covid_WT_sum=COVID_WT-DMSO, Covid_BA4_5_sum=COVID_BA4_5-DMSO) %>% 
-        tidyr::pivot_longer(DMSO:Covid_BA4_5_sum, names_to="Stimulant", values_to = {{var}}) %>%
-        dplyr::mutate(across(DonorID:Stimulant,as.factor)) %>%
-        dplyr::filter(Stimulant != "COVID_WT" & Stimulant != "COVID_BA4_5") %>%
-        dplyr::mutate(Stimulant=fct_recode(Stimulant, COVID_WT="Covid_WT_sum", COVID_BA4_5="Covid_BA4_5_sum")) %>% 
-        dplyr::mutate(Timepoint=fct_relevel(Timepoint,"VY","V2","V3"))
-      
-      filePath <- glue::glue("PREVENT_Subtracted_{var}.csv")
-      subtracted_data <- arrange(subtracted_data, Stimulant, Timepoint, DonorID)
-      write.csv(subtracted_data, filePath)
-      lastCreatedFile(filePath)
-    }
+    combinedData <- NULL
     
     for (var in variableNames) {
       
@@ -137,11 +122,20 @@ server <- function(input, output) {
         dplyr::mutate(Stimulant=fct_recode(Stimulant, COVID_WT="Covid_WT_sum", COVID_BA4_5="Covid_BA4_5_sum")) %>% 
         dplyr::mutate(Timepoint=fct_relevel(Timepoint,"VY","V2","V3"))
       
-      filePath <- glue::glue("PREVENT_Boxcox_{var}.csv")
-      bcxsubtracted_data <- arrange(bcxsubtracted_data, Stimulant, Timepoint, DonorID)
-      write.csv(bcxsubtracted_data, filePath)
-      lastCreatedFile(filePath)
+      # Remove the COVID_BA4_5.x and COVID_WT.x columns
+      bcxsubtracted_data <- bcxsubtracted_data %>% 
+        dplyr::select(DonorID, Stimulant, Timepoint, {{var}})
+      
+      # First iteration: initialize combinedData with bcxsubtracted_data. Otherwise, merge the new data into combinedData by your unique identifiers
+      if (is.null(combinedData)) {
+        combinedData <- bcxsubtracted_data
+      } else {
+        combinedData <- combinedData %>%
+          dplyr::left_join(bcxsubtracted_data, by = c("DonorID", "Stimulant", "Timepoint"))
+      }
     }
+    write.csv(combinedData, "PREVENT_Boxcox_Combined.csv")
+    lastCreatedFile("PREVENT_Boxcox_Combined.csv")
   })
   
   
