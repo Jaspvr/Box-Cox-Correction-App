@@ -23,6 +23,9 @@ ui <- fluidPage(theme = shinytheme("cerulean"),
     tabPanel("Upload CSV",
      sidebarPanel(
        numericInput("lambda", "Input Lambda value", value = 0.5),
+       textInput("unstimulated", "Unstimulated Parameter", value = "DMSO"),
+       textAreaInput("stimulants", "Stimulants (comma separated)", value = "Fluzone, COVID_WT, COVID_BA4_5, Cytostim"),
+       textAreaInput("grouping_columns", "Grouping Columns (comma separated)", value = "Timepoint, DonorID"),
        fileInput("patientData", "Input Patient Data (CSV)"),
        fileInput("AIMVariables", "Input AIM Variables (CSV)"),
        downloadButton("download", "Download Transformed Data")
@@ -81,8 +84,8 @@ server <- function(input, output) {
   # ---------------------------- Box-Cox Calculation Start --------------------------------------------
   
   # These will be eventually user defined
-  stimulants<-c("Fluzone", "COVID_WT", "COVID_BA4_5", "Cytostim")
-  unstimulated_parameter<-"DMSO"
+  # stimulants<-c("Fluzone", "COVID_WT", "COVID_BA4_5", "Cytostim")
+  # unstimulated_parameter<-"DMSO"
   
   Neg_to_Zero<-function(x){
     ifelse((x<=0.005), 0.005, x)
@@ -114,11 +117,14 @@ server <- function(input, output) {
   }
   
   # Stim is special, this is what we use to do operations on groups
-  grouping_columns <- c("Timepoint", "DonorID")
+  # grouping_columns <- c("Timepoint", "DonorID")
+  
   # Assuming all_data is defined as before, we create a new reactive expression for the filtered data
   all_data_filtered <- reactive({
     req(all_data_raw())  # Ensure all_data is available
     data <- all_data_raw()  # Get the data frame
+    
+    grouping_columns <- strsplit(input$grouping_columns, ",\\s*")[[1]]
     
     # Now arrange the data
     data %>% 
@@ -129,6 +135,11 @@ server <- function(input, output) {
     req(input$patientData, input$AIMVariables) # Ensure both files are uploaded
     allDataValue <- all_data_filtered() # Get the current value of all_data
     variableNames <- variables()$variable # Assuming variables() returns a dataframe with a column 'variable'
+    
+    # Get user inputted values for stimulants, unstimulated parameter, and for the grouping columns
+    stimulants <- strsplit(input$stimulants, ",\\s*")[[1]]
+    unstimulated_parameter <- input$unstimulated
+    grouping_columns <- strsplit(input$grouping_columns, ",\\s*")[[1]]
     
     # Group by matching grouping columns
     grouped_data <- allDataValue %>%
