@@ -19,7 +19,7 @@ ui <- fluidPage(theme = shinytheme("cerulean"),
   navbarPage(
     "Box-Cox Correction App",
     
-    # Tab 1: File Upload
+    # Tab 1: File Upload, user specification based on their data
     tabPanel("Upload CSV",
      sidebarPanel(
        numericInput("lambda", "Input Lambda value", value = 0.5),
@@ -36,7 +36,7 @@ ui <- fluidPage(theme = shinytheme("cerulean"),
      )
     ),
     
-    # Tab 2: About
+    # Tab 2: About section
     tabPanel("About",
      tags$br(),
      tags$p("Analysis of T cell activation-induced marker (AIM) assay data requires normalization of AIM+ cell frequencies to background AIM+ frequencies in an unstimulated control. 
@@ -74,7 +74,6 @@ server <- function(input, output) {
   })
   
   # Render data table for variables
-  # Ensure this output ID is unique and matches an output in your UI
   output$variablesTable <- renderDT({
     req(variables())
     variables()
@@ -82,10 +81,6 @@ server <- function(input, output) {
   
   
   # ---------------------------- Box-Cox Calculation Start --------------------------------------------
-  
-  # These will be eventually user defined
-  # stimulants<-c("Fluzone", "COVID_WT", "COVID_BA4_5", "Cytostim")
-  # unstimulated_parameter<-"DMSO"
   
   Neg_to_Zero<-function(x){
     ifelse((x<=0.005), 0.005, x)
@@ -124,6 +119,7 @@ server <- function(input, output) {
     req(all_data_raw())  # Ensure all_data is available
     data <- all_data_raw()  # Get the data frame
     
+    # These are the columns that are used to make groups based on rows having the same value for each of these columns
     grouping_columns <- strsplit(input$grouping_columns, ",\\s*")[[1]]
     
     # Now arrange the data
