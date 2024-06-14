@@ -5,9 +5,9 @@ account: jaspvr
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 11677862
-bundleId: 8462590
+bundleId: 8740594
 url: https://jaspvr.shinyapps.io/BoxCoxApp/
 version: 1
 asMultiple: FALSE
 asStatic: FALSE
-ignoredFiles: boxcox_transformed_data.csv|PREVENT_Boxcox_CD4_CD134pCD25p.csv|PREVENT_Boxcox_CD4_CD134pCD69p.csv|PREVENT_Boxcox_CD4p_CD137pCD69p.csv|PREVENT_Boxcox_CD8_CD107apCD137p.csv|PREVENT_Boxcox_CD8_CD107apCD69p.csv|PREVENT_Boxcox_CD8_CD137pCD69p.csv|PREVENT_Boxcox_Combined.csv|PREVENT_Subtracted_CD4_CD134pCD25p.csv|PREVENT_Subtracted_CD4_CD134pCD69p.csv|PREVENT_Subtracted_CD4p_CD137pCD69p.csv|PREVENT_Subtracted_CD8_CD107apCD137p.csv|PREVENT_Subtracted_CD8_CD107apCD69p.csv|PREVENT_Subtracted_CD8_CD137pCD69p.csv|README.md|testing/20240316_BoxCoxAnalysisofPREVENTData.R|testing/20240316_RawPREVENTDataForBoxcoxAnalysis.csv|testing/AIM_variables.csv
+ignoredFiles: PREVENT_Boxcox_Combined.csv|README.md
