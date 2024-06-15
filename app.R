@@ -134,7 +134,6 @@ server <- function(input, output) {
       data %>% 
         arrange(across(all_of(grouping_columns))) # Arrange by inputted identifier columns instead
     }, error = function(e) {
-      errorMessages(paste("Error arranging data by grouping columns:", e$message))
       shinyalert("Error", paste("Error grouping data:", e$message), type = "error")
       return(NULL)
     })
