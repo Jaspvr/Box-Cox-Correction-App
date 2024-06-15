@@ -10,48 +10,52 @@ library(conflicted)
 library(shiny)
 library(shinythemes)
 library(DT)  # For displaying data tables
+library(shinyalert)  # For displaying popup alerts
 
 # Resolve conflicts
 conflicts_prefer(dplyr::filter)
 
 # Define UI
 ui <- fluidPage(theme = shinytheme("cerulean"),
-  navbarPage(
-    "Box-Cox Correction App",
-    
-    # Tab 1: File Upload, user specification based on their data
-    tabPanel("Upload CSV",
-     sidebarPanel(
-       numericInput("lambda", "Input Lambda value", value = 0.5),
-       textInput("unstimulated", "Unstimulated Parameter", value = "DMSO"),
-       textAreaInput("stimulants", "Stimulants (comma separated)", value = "Fluzone, COVID_WT, COVID_BA4_5, Cytostim"),
-       textAreaInput("grouping_columns", "Grouping Columns (comma separated)", value = "Timepoint, DonorID"),
-       fileInput("patientData", "Input Patient Data (CSV)"),
-       fileInput("AIMVariables", "Input AIM Variables (CSV)"),
-       downloadButton("download", "Download Transformed Data")
-     ),
-     mainPanel(
-       DTOutput("table1"),
-       DTOutput("variablesTable")
-     )
-    ),
-    
-    # Tab 2: About section
-    tabPanel("About",
-     tags$br(),
-     tags$p("Analysis of T cell activation-induced marker (AIM) assay data requires normalization of AIM+ cell frequencies to background AIM+ frequencies in an unstimulated control. 
-     Subtracting or dividing by the unstimulated control each have specific disadvantages and can amplify technical variability in the assay. 
-     The Box-Cox correction is an innovative method with features of both division and linear subtraction, allowing a more sophisticated correction for unstimulated AIM+ cell frequencies that better aligns with the mathematical properties of AIM datasets and reduces technical variability."), 
-     tags$br(),
-     tags$p("To take advantage of the Box-Cox correction, upload your full AIM dataset and the set of variables to be corrected. The Box-Cox Correction App will immediately return the corrected values which are then ready for data display or statistical analysis.")
-    ),
-  )
+    navbarPage(
+      "Box-Cox Correction App",
+      
+      # Tab 1: File Upload, user specification based on their data
+      tabPanel("Upload CSV",
+         sidebarPanel(
+           numericInput("lambda", "Input Lambda value", value = 0.5),
+           textInput("unstimulated", "Unstimulated Parameter", value = "DMSO"),
+           textAreaInput("stimulants", "Stimulants (comma separated)", value = "Fluzone, COVID_WT, COVID_BA4_5, Cytostim"),
+           textAreaInput("grouping_columns", "Grouping Columns (comma separated)", value = "Timepoint, DonorID"),
+           fileInput("patientData", "Input Patient Data (CSV)"),
+           fileInput("AIMVariables", "Input AIM Variables (CSV)"),
+           downloadButton("download", "Download Transformed Data")
+         ),
+         mainPanel(
+           DTOutput("table1"),
+           DTOutput("variablesTable"),
+           verbatimTextOutput("errorMessages")
+         )
+      ),
+      
+      # Tab 2: About section
+      tabPanel("About",
+         tags$br(),
+         tags$p("Analysis of T cell activation-induced marker (AIM) assay data requires normalization of AIM+ cell frequencies to background AIM+ frequencies in an unstimulated control. 
+Subtracting or dividing by the unstimulated control each have specific disadvantages and can amplify technical variability in the assay. 
+The Box-Cox correction is an innovative method with features of both division and linear subtraction, allowing a more sophisticated correction for unstimulated AIM+ cell frequencies that better aligns with the mathematical properties of AIM datasets and reduces technical variability."), 
+         tags$br(),
+         tags$p("To take advantage of the Box-Cox correction, upload your full AIM dataset and the set of variables to be corrected. The Box-Cox Correction App will immediately return the corrected values which are then ready for data display or statistical analysis.")
+      ),
+    )
 )
 
 # Define server function
 server <- function(input, output) {
   # Reactive value to store the path of the last created file
   lastCreatedFile <- reactiveVal()
+  
+  errorMessages <- reactiveVal("")
   
   # Reactive function to read uploaded Patient Data CSV file
   all_data_raw <- reactive({
@@ -123,15 +127,24 @@ server <- function(input, output) {
     # These are the columns that are used to make groups based on rows having the same value for each of these columns
     grouping_columns <- strsplit(input$grouping_columns, ",\\s*")[[1]]
     
-    # Now arrange the data
-    data %>% 
-      arrange(across(all_of(grouping_columns))) # Arrange by inputted identifier columns instead
+    # # Now arrange the data
+    # data %>% 
+    #   arrange(across(all_of(grouping_columns))) # Arrange by inputted identifier columns instead
+    tryCatch({
+      data %>% 
+        arrange(across(all_of(grouping_columns))) # Arrange by inputted identifier columns instead
+    }, error = function(e) {
+      errorMessages(paste("Error arranging data by grouping columns:", e$message))
+      shinyalert("Error", paste("Error grouping data:", e$message), type = "error")
+      return(NULL)
+    })
   })
   
   observe({
     req(input$patientData, input$AIMVariables) # Ensure both files are uploaded
     allDataValue <- all_data_filtered() # Get the current value of all_data
     variableNames <- variables()$variable # Assuming variables() returns a dataframe with a column 'variable'
+    if (is.null(allDataValue)) return()
     
     # Get user inputted values for stimulants, unstimulated parameter, and for the grouping columns
     stimulants <- strsplit(input$stimulants, ",\\s*")[[1]]
@@ -186,6 +199,11 @@ server <- function(input, output) {
     }
   })
   
+  # Render error messages
+  output$errorMessages <- renderPrint({
+    errorMessages()
+  })
+  
   
   # ---------------------------- Box-Cox Calculation End -------------------------------------------
   
@@ -204,5 +222,3 @@ server <- function(input, output) {
 
 # Create Shiny app object
 shinyApp(ui = ui, server = server)
-
-
