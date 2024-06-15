@@ -80,6 +80,10 @@ server <- function(input, output) {
   })
   
   
+  # Reactive to store missing variables
+  missing_variables <- reactiveVal()
+  
+  
   # ---------------------------- Box-Cox Calculation Start --------------------------------------------
   
   Neg_to_Zero<-function(x){
@@ -134,6 +138,16 @@ server <- function(input, output) {
     unstimulated_parameter <- input$unstimulated
     grouping_columns <- strsplit(input$grouping_columns, ",\\s*")[[1]]
     
+    
+    # Identify missing variables
+    missing_vars <- variableNames[!variableNames %in% names(allDataValue)]
+    missing_variables(missing_vars)
+    
+    # Filter the variable names to only those present in the data
+    variableNames <- variableNames[variableNames %in% names(allDataValue)]
+    
+    
+    
     # Group by matching grouping columns
     grouped_data <- allDataValue %>%
       group_by(across(all_of(grouping_columns)))
@@ -161,7 +175,16 @@ server <- function(input, output) {
     
   })
   
-  
+  # Render missing variables
+  output$missingVariables <- renderPrint({
+    missing_vars <- missing_variables()
+    if (length(missing_vars) > 0) {
+      cat("The following AIM variables were not found in the data and were skipped:\n")
+      cat(missing_vars, sep = "\n")
+    } else {
+      cat("No AIM variables are missing.")
+    }
+  })
   
   
   # ---------------------------- Box-Cox Calculation End -------------------------------------------
