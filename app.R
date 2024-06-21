@@ -29,6 +29,7 @@ ui <- fluidPage(theme = shinytheme("cerulean"),
            fileInput("patientData", "Input Patient Data (CSV)"),
            selectInput("AIMVariables", "AIM Variables (from patient data headers)", choices = NULL, multiple = TRUE),
            selectInput("grouping_columns", "Grouping Columns (from patient data headers)", choices = NULL, multiple = TRUE),
+           selectInput("stim_column", "Stimulant Column (from patient data headers)", choices = NULL),
            downloadButton("download", "Download Transformed Data")
          ),
          mainPanel(
@@ -69,6 +70,7 @@ server <- function(input, output, session) {
     req(all_data_raw())
     updateSelectInput(session, "grouping_columns", choices = names(all_data_raw()))
     updateSelectInput(session, "AIMVariables", choices = names(all_data_raw()))
+    updateSelectInput(session, "stim_column", choices = names(all_data_raw()))
   })
   
   # Render data table for all_data
@@ -137,29 +139,49 @@ server <- function(input, output, session) {
       
       allDataValue <- all_data_filtered()  # Get the current value of all_data
       variableNames <- input$AIMVariables
-      if (is.null(allDataValue)) return()
-      if (is.null(variableNames)) return()
+      stim_column <- input$stim_column
+      if (is.null(allDataValue)) {
+        shinyalert("Error", "Patient data is empty or not properly loaded", type = "error")
+        return()
+      }
+      if (is.null(variableNames)) {
+        shinyalert("Error", "Patient data is empty or not properly loaded", type = "error")
+        return()
+      }
       
       # Get user inputted values for stimulants, unstimulated parameter, and for the grouping columns
       stimulants <- strsplit(input$stimulants, ",\\s*")[[1]]
       unstimulated_parameter <- input$unstimulated
       grouping_columns <- strsplit(input$grouping_columns, ",\\s*")[[1]]
       
+      # Error handling:
+      if (length(grouping_columns) == 0) {
+        shinyalert("Error", "Grouping columns are not properly selected.", type = "error")
+        return()
+      }
+      
       # Filter the variable names to only those present in the data
       variableNames <- variableNames[variableNames %in% names(allDataValue)]
+      if (length(variableNames) == 0) {
+        shinyalert("Error", "None of the selected AIM variables are present in the patient data.", type = "error")
+        return()
+      }
       
       # Group by matching grouping columns
       tryCatch({
         grouped_data <- allDataValue %>%
           group_by(across(all_of(grouping_columns)))
       }, error = function(e) {
+        shinyalert("Error", paste("Error grouping data:", e$message), type = "error")
         return(NULL)
       })
       
       # Function to apply Box-Cox transformation, subtract unstimulated control, and apply inverse Box-Cox transformation
       transform_and_subtract <- function(df, unstim_var) {
-        unstimulated <- df %>% filter(Stim == unstim_var)
-        if (nrow(unstimulated) == 0) return(df)
+        unstimulated <- df %>% filter(!!sym(stim_column) == unstim_var)
+        if (nrow(unstimulated) == 0) {
+          return(df)
+        }
         
         unstim_values <- unstimulated[variableNames]
         
@@ -168,14 +190,19 @@ server <- function(input, output, session) {
       }
       
       # Apply the transformations within each group
-      transformed_data <- grouped_data %>%
-        group_modify(~ transform_and_subtract(.x, unstimulated_parameter)) %>%
-        ungroup()
-      
-      temp_file <- tempfile(fileext = ".csv")
-      write.csv(transformed_data, temp_file, row.names = FALSE)
-      lastCreatedFile(temp_file)
-      file.copy(lastCreatedFile(), file)  # Copy the last created file to the download location
+      tryCatch({
+        transformed_data <- grouped_data %>%
+          group_modify(~ transform_and_subtract(.x, unstimulated_parameter)) %>%
+          ungroup()
+        
+        temp_file <- tempfile(fileext = ".csv")
+        write.csv(transformed_data, temp_file, row.names = FALSE)
+        lastCreatedFile(temp_file)
+        file.copy(lastCreatedFile(), file)  # Copy the last created file to the download location
+      }, error = function(e) {
+        shinyalert("Error", paste("Error during transformation:", e$message), type = "error")
+        return(NULL)
+      }) 
     }
   )
 }
