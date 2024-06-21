@@ -34,7 +34,6 @@ ui <- fluidPage(theme = shinytheme("cerulean"),
          mainPanel(
            DTOutput("table1"),
            DTOutput("variablesTable"),
-           verbatimTextOutput("errorMessages")
          )
       ),
       
@@ -55,20 +54,28 @@ server <- function(input, output) {
   # Reactive value to store the path of the last created file
   lastCreatedFile <- reactiveVal()
   
-  errorMessages <- reactiveVal("")
-  
   # Reactive function to read uploaded Patient Data CSV file
   all_data_raw <- reactive({
     req(input$patientData)  # Ensure file is uploaded
-    read.csv(input$patientData$datapath, stringsAsFactors = FALSE)
+    tryCatch({
+      read.csv(input$patientData$datapath, stringsAsFactors = FALSE)
+    }, error = function(e) {
+      shinyalert("Error", paste("Error reading patient data:", e$message), type = "error")
+      return(NULL)
+    })
   })
   
   # Reactive function to read uploaded AIM Variables CSV file
   variables <- reactive({
     req(input$AIMVariables)  # Ensure file is uploaded
-    vars <- read.csv(input$AIMVariables$datapath, stringsAsFactors = FALSE) %>% 
-      pull()
-    data.frame(variable = vars)
+    tryCatch({
+      vars <- read.csv(input$AIMVariables$datapath, stringsAsFactors = FALSE) %>% 
+        pull()
+      data.frame(variable = vars)
+    }, error = function(e){
+      shinyalert("Error", paste("Error reading AIM variables:", e$message), type = "error")
+      return(NULL)
+    })
   })
   
   # Render data table for all_data
@@ -82,10 +89,6 @@ server <- function(input, output) {
     req(variables())
     variables()
   })
-  
-  
-  # Reactive to store missing variables
-  missing_variables <- reactiveVal()
   
   
   # ---------------------------- Box-Cox Calculation Start --------------------------------------------
@@ -144,6 +147,7 @@ server <- function(input, output) {
     allDataValue <- all_data_filtered() # Get the current value of all_data
     variableNames <- variables()$variable # Assuming variables() returns a dataframe with a column 'variable'
     if (is.null(allDataValue)) return()
+    if (is.null(variableNames)) return()
     
     # Get user inputted values for stimulants, unstimulated parameter, and for the grouping columns
     stimulants <- strsplit(input$stimulants, ",\\s*")[[1]]
@@ -151,13 +155,8 @@ server <- function(input, output) {
     grouping_columns <- strsplit(input$grouping_columns, ",\\s*")[[1]]
     
     
-    # Identify missing variables
-    missing_vars <- variableNames[!variableNames %in% names(allDataValue)]
-    missing_variables(missing_vars)
-    
-    # Filter the variable names to only those present in the data
+    # Filter the variable names to only those present in the data. This avoids errors where columns are not found in the dataset
     variableNames <- variableNames[variableNames %in% names(allDataValue)]
-    
     
     
     # Group by matching grouping columns
@@ -187,21 +186,21 @@ server <- function(input, output) {
     
   })
   
-  # Render missing variables
-  output$missingVariables <- renderPrint({
-    missing_vars <- missing_variables()
-    if (length(missing_vars) > 0) {
-      cat("The following AIM variables were not found in the data and were skipped:\n")
-      cat(missing_vars, sep = "\n")
-    } else {
-      cat("No AIM variables are missing.")
-    }
-  })
+  # # Render missing variables
+  # output$missingVariables <- renderPrint({
+  #   missing_vars <- missing_variables()
+  #   if (length(missing_vars) > 0) {
+  #     cat("The following AIM variables were not found in the data and were skipped:\n")
+  #     cat(missing_vars, sep = "\n")
+  #   } else {
+  #     cat("No AIM variables are missing.")
+  #   }
+  # })
   
-  # Render error messages
-  output$errorMessages <- renderPrint({
-    errorMessages()
-  })
+  # # Render error messages
+  # output$errorMessages <- renderPrint({
+  #   errorMessages()
+  # })
   
   
   # ---------------------------- Box-Cox Calculation End -------------------------------------------
