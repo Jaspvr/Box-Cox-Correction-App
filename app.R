@@ -26,14 +26,15 @@ ui <- fluidPage(theme = shinytheme("cerulean"),
            numericInput("lambda", "Input Lambda value", value = 0.5),
            textInput("unstimulated", "Unstimulated Parameter", value = "DMSO"),
            textAreaInput("stimulants", "Stimulants (comma separated)", value = "Fluzone, COVID_WT, COVID_BA4_5, Cytostim"),
-           textAreaInput("grouping_columns", "Grouping Columns (comma separated)", value = "Timepoint, DonorID"),
+           # textAreaInput("grouping_columns", "Grouping Columns (comma separated)", value = "Timepoint, DonorID"),
            fileInput("patientData", "Input Patient Data (CSV)"),
-           fileInput("AIMVariables", "Input AIM Variables (CSV)"),
+           # fileInput("AIMVariables", "Input AIM Variables (CSV)"),
+           selectInput("AIMVariables", "AIM Variables (from patient data headers)", choices = NULL, multiple = TRUE),
+           selectInput("grouping_columns", "Grouping Columns (from patient data headers)", choices = NULL, multiple = TRUE),
            downloadButton("download", "Download Transformed Data")
          ),
          mainPanel(
            DTOutput("table1"),
-           DTOutput("variablesTable"),
          )
       ),
       
@@ -50,7 +51,7 @@ The Box-Cox correction is an innovative method with features of both division an
 )
 
 # Define server function
-server <- function(input, output) {
+server <- function(input, output, session) {
   # Reactive value to store the path of the last created file
   lastCreatedFile <- reactiveVal()
   
@@ -65,30 +66,37 @@ server <- function(input, output) {
     })
   })
   
-  # Reactive function to read uploaded AIM Variables CSV file
-  variables <- reactive({
-    req(input$AIMVariables)  # Ensure file is uploaded
-    tryCatch({
-      vars <- read.csv(input$AIMVariables$datapath, stringsAsFactors = FALSE) %>% 
-        pull()
-      data.frame(variable = vars)
-    }, error = function(e){
-      shinyalert("Error", paste("Error reading AIM variables:", e$message), type = "error")
-      return(NULL)
-    })
+  # Update the selectInput choices based on the uploaded data
+  observe({
+    req(all_data_raw())
+    updateSelectInput(session, "grouping_columns", choices = names(all_data_raw()))
+    updateSelectInput(session, "AIMVariables", choices = names(all_data_raw()))
   })
   
+  # # Reactive function to read uploaded AIM Variables CSV file
+  # variables <- reactive({
+  #   req(input$AIMVariables)  # Ensure file is uploaded
+  #   tryCatch({
+  #     vars <- read.csv(input$AIMVariables$datapath, stringsAsFactors = FALSE) %>% 
+  #       pull()
+  #     data.frame(variable = vars)
+  #   }, error = function(e){
+  #     shinyalert("Error", paste("Error reading AIM variables:", e$message), type = "error")
+  #     return(NULL)
+  #   })
+  # })
+  # 
   # Render data table for all_data
   output$table1 <- renderDT({
     req(all_data_raw())
     all_data_raw()
   })
   
-  # Render data table for variables
-  output$variablesTable <- renderDT({
-    req(variables())
-    variables()
-  })
+  # # Render data table for variables
+  # output$variablesTable <- renderDT({
+  #   req(variables())
+  #   variables()
+  # })
   
   
   # ---------------------------- Box-Cox Calculation Start --------------------------------------------
@@ -128,7 +136,8 @@ server <- function(input, output) {
     data <- all_data_raw()  # Get the data frame
     
     # These are the columns that are used to make groups based on rows having the same value for each of these columns
-    grouping_columns <- strsplit(input$grouping_columns, ",\\s*")[[1]]
+    # grouping_columns <- strsplit(input$grouping_columns, ",\\s*")[[1]]
+    grouping_columns <- input$grouping_columns
     
     # # Now arrange the data
     # data %>% 
@@ -148,10 +157,13 @@ server <- function(input, output) {
       paste(Sys.Date(), "transformed-data.csv", sep = "_")  # Provide a meaningful default filename
     },
     content = function(file) {
-      req(input$patientData, input$AIMVariables)  # Ensure both files are uploaded
+      # req(input$patientData, input$AIMVariables)  # Ensure both files are uploaded
+      req(input$patientData, input$AIMVariables)
       allDataValue <- all_data_filtered()  # Get the current value of all_data
-      variableNames <- variables()$variable  # Assuming variables() returns a dataframe with a column 'variable'
+      # variableNames <- variables()$variable  # Assuming variables() returns a dataframe with a column 'variable'
+      variableNames <- input$AIMVariables
       if (is.null(allDataValue)) return()
+      if (is.null(variableNames)) return()
       
       # Get user inputted values for stimulants, unstimulated parameter, and for the grouping columns
       stimulants <- strsplit(input$stimulants, ",\\s*")[[1]]
@@ -162,8 +174,12 @@ server <- function(input, output) {
       variableNames <- variableNames[variableNames %in% names(allDataValue)]
       
       # Group by matching grouping columns
-      grouped_data <- allDataValue %>%
-        group_by(across(all_of(grouping_columns)))
+      tryCatch({
+        grouped_data <- allDataValue %>%
+          group_by(across(all_of(grouping_columns)))
+      }, error = function(e) {
+        return(NULL)
+      })
       
       # Function to apply Box-Cox transformation, subtract unstimulated control, and apply inverse Box-Cox transformation
       transform_and_subtract <- function(df, unstim_var) {
