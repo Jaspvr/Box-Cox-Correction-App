@@ -24,8 +24,8 @@ ui <- fluidPage(theme = shinytheme("cerulean"),
       tabPanel("Upload CSV",
          sidebarPanel(
            numericInput("lambda", "Input Lambda value", value = 0.5),
-           textInput("unstimulated", "Unstimulated Parameter", value = "DMSO"),
-           textAreaInput("stimulants", "Stimulants (comma separated)", value = "Fluzone, COVID_WT, COVID_BA4_5, Cytostim"),
+           textInput("unstimulated", "Unstimulated Parameter", value = "unstimulated"),
+           textAreaInput("stimulants", "Stimulants (comma separated)", value = "CMV_protein, CMV_peptides, CytoStim, Infanrix, COVID_S_Ag"),
            fileInput("patientData", "Input Patient Data (CSV)"),
            selectInput("AIMVariables", "AIM Variables (from patient data headers)", choices = NULL, multiple = TRUE),
            selectInput("grouping_columns", "Grouping Columns (from patient data headers)", choices = NULL, multiple = TRUE),
@@ -152,7 +152,9 @@ server <- function(input, output, session) {
       # Get user inputted values for stimulants, unstimulated parameter, and for the grouping columns
       stimulants <- strsplit(input$stimulants, ",\\s*")[[1]]
       unstimulated_parameter <- input$unstimulated
-      grouping_columns <- strsplit(input$grouping_columns, ",\\s*")[[1]]
+      grouping_columns <- input$grouping_columns
+      # grouping_columns <- strsplit(input$grouping_columns, ",\\s*")[[1]]
+      # print(grouping_columns)
       
       # Error handling:
       if (length(grouping_columns) == 0) {
@@ -161,11 +163,11 @@ server <- function(input, output, session) {
       }
       
       # Filter the variable names to only those present in the data
-      variableNames <- variableNames[variableNames %in% names(allDataValue)]
-      if (length(variableNames) == 0) {
-        shinyalert("Error", "None of the selected AIM variables are present in the patient data.", type = "error")
-        return()
-      }
+      # variableNames <- variableNames[variableNames %in% names(allDataValue)]
+      # if (length(variableNames) == 0) {
+      #   shinyalert("Error", "None of the selected AIM variables are present in the patient data.", type = "error")
+      #   return()
+      # }
       
       # Group by matching grouping columns
       tryCatch({
@@ -179,22 +181,24 @@ server <- function(input, output, session) {
       # Function to apply Box-Cox transformation, subtract unstimulated control, and apply inverse Box-Cox transformation
       transform_and_subtract <- function(df, unstim_var) {
         unstimulated <- df %>% filter(!!sym(stim_column) == unstim_var)
+
         if (nrow(unstimulated) == 0) {
           return(df)
         }
-        
+
         unstim_values <- unstimulated[variableNames]
-        
+
+
         df %>%
           mutate(across(all_of(variableNames), ~ ibc(bc(.x) - bc(unstim_values[[cur_column()]]))))
       }
-      
+
       # Apply the transformations within each group
       tryCatch({
         transformed_data <- grouped_data %>%
           group_modify(~ transform_and_subtract(.x, unstimulated_parameter)) %>%
           ungroup()
-        
+
         temp_file <- tempfile(fileext = ".csv")
         write.csv(transformed_data, temp_file, row.names = FALSE)
         lastCreatedFile(temp_file)
@@ -202,7 +206,7 @@ server <- function(input, output, session) {
       }, error = function(e) {
         shinyalert("Error", paste("Error during transformation:", e$message), type = "error")
         return(NULL)
-      }) 
+      })
     }
   )
 }
