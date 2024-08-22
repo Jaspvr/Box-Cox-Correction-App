@@ -153,21 +153,12 @@ server <- function(input, output, session) {
       stimulants <- strsplit(input$stimulants, ",\\s*")[[1]]
       unstimulated_parameter <- input$unstimulated
       grouping_columns <- input$grouping_columns
-      # grouping_columns <- strsplit(input$grouping_columns, ",\\s*")[[1]]
-      # print(grouping_columns)
       
       # Error handling:
       if (length(grouping_columns) == 0) {
         shinyalert("Error", "Grouping columns are not properly selected.", type = "error")
         return()
       }
-      
-      # Filter the variable names to only those present in the data
-      # variableNames <- variableNames[variableNames %in% names(allDataValue)]
-      # if (length(variableNames) == 0) {
-      #   shinyalert("Error", "None of the selected AIM variables are present in the patient data.", type = "error")
-      #   return()
-      # }
       
       # Group by matching grouping columns
       tryCatch({
@@ -187,7 +178,6 @@ server <- function(input, output, session) {
         }
 
         unstim_values <- unstimulated[variableNames]
-
 
         df %>%
           mutate(across(all_of(variableNames), ~ ibc(bc(.x) - bc(unstim_values[[cur_column()]]))))
