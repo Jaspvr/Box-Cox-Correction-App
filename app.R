@@ -6,7 +6,7 @@ source("modules/mod_boxcox.R", local = TRUE)
 ui <- fluidPage(
   theme = shinytheme("cerulean"),
   navbarPage(
-    "AIM Utilities",
+    "Box-Cox Correction App",
     boxcoxUI("boxcox"),        # <<— Box-Cox tab from module
     tabPanel("About",
              tags$br(),
@@ -24,7 +24,6 @@ server <- function(input, output, session) {
   boxcoxServer("boxcox")       # <<— call module server
   # siServer("si")             # ←— you’ll add this line for the SI module
 }
-
 
 # Create Shiny app object
 shinyApp(ui = ui, server = server)
