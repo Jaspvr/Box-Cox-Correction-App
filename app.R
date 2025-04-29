@@ -8,7 +8,7 @@ ui <- fluidPage(
   theme = shinytheme("cerulean"),
   navbarPage(
     "Box-Cox Correction App",
-    boxcoxUI("boxcox"),        # <<— Box-Cox tab from module
+    boxcoxUI("boxcox"),
     siUI("si"),
     tabPanel("About",
              tags$br(),
@@ -18,7 +18,6 @@ The Box-Cox correction is an innovative method with features of both division an
              tags$br(),
              tags$p("To take advantage of the Box-Cox correction, upload your full AIM dataset and the set of variables to be corrected. The Box-Cox Correction App will immediately return the corrected values which are then ready for data display or statistical analysis.")
     )
-    # ←— Drop the SI tab here later, e.g. siUI("si")
   )
 )
 
