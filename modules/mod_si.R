@@ -19,6 +19,9 @@ siUI <- function(id, title = "Stim‑Index (SI)") {
     sidebarPanel(
       numericInput(ns("lambda"),     "Lambda (L)",            value = 0.5, step = 0.05, min = 0, max = 1),
       checkboxInput(ns("corrected"), "Apply F1(L) correction", value = TRUE),
+      numericInput(ns("theta_H"),    "Theta (H) – leave NA for automatic", value = NA, step = 0.05),
+      numericInput(ns("scale_s"),    "Scaling factor (s)",     value = 1,  min = 0),
+      numericInput(ns("offset_e"),   "Offset (e)",             value = 0),
       numericInput(ns("oob"),        "OOB replacement value",  value = 1e-3, min = 0),
       textInput(   ns("unstimulated"), "Unstimulated parameter", value = "unstimulated"),
       textAreaInput(ns("stimulants"),  "Stimulants (comma separated)",
@@ -125,10 +128,13 @@ siServer <- function(id) {
         
         if (length(grouping_cols) == 0) { shinyalert("Error", "Grouping columns not selected.", type = "error"); return() }
         
-        # parameters for SI
+        # parameters for SI (user‑supplied)
         lambda_val <- input$lambda
         corrected  <- isTRUE(input$corrected)
         oob_value  <- input$oob
+        h_val      <- if (is.na(input$theta_H)) NULL else input$theta_H
+        s_val      <- input$scale_s
+        e_val      <- input$offset_e
         
         # Transformation function applied per-group ------------------------
         transform_si <- function(chunk, unstim) {
@@ -145,10 +151,13 @@ siServer <- function(id) {
                      mapply(function(val, stim_label) {
                        if (stim_label == unstim) return(val)          # leave unstim row untouched
                        SI(
-                         x1       = val,
-                         x0       = unstim_vals[[col_name]],
-                         L        = lambda_val,
-                         OOB.V    = oob_value,
+                         x1        = val,
+                         x0        = unstim_vals[[col_name]],
+                         L         = lambda_val,
+                         H         = h_val,
+                         s         = s_val,
+                         e         = e_val,
+                         OOB.V     = oob_value,
                          corrected = corrected
                        )
                      }, .x, current_stim)
