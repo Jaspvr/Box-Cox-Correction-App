@@ -11,3 +11,4 @@ library(glue)
 library(conflicted)
 
 conflicts_prefer(dplyr::filter)
+conflicts_prefer(shiny::hr)   
