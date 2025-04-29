@@ -1,6 +1,7 @@
 # Libraries and modules
-source("global.R",      local = FALSE)  # if you created it
+source("global.R",      local = FALSE)
 source("modules/mod_boxcox.R", local = TRUE)
+source("modules/mod_si.R",     local = TRUE)
 
 # Define UI
 ui <- fluidPage(
@@ -8,6 +9,7 @@ ui <- fluidPage(
   navbarPage(
     "Box-Cox Correction App",
     boxcoxUI("boxcox"),        # <<— Box-Cox tab from module
+    siUI("si"),
     tabPanel("About",
              tags$br(),
              tags$p("Analysis of T cell activation-induced marker (AIM) assay data requires normalization of AIM+ cell frequencies to background AIM+ frequencies in an unstimulated control. 
@@ -22,7 +24,7 @@ The Box-Cox correction is an innovative method with features of both division an
 
 server <- function(input, output, session) {
   boxcoxServer("boxcox")       # <<— call module server
-  # siServer("si")             # ←— you’ll add this line for the SI module
+  siServer("si")             # ←— you’ll add this line for the SI module
 }
 
 # Create Shiny app object

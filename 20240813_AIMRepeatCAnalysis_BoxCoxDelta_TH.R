@@ -3,18 +3,14 @@ library(IDPmisc)
 library(glue)
 library(tidyverse)
 
-
 original_data<-read.csv("AIM_Repeats_C_20230608.csv")
-#original_data <- read.csv("AIM_Repeats_C_20230608
 original_data$Repeat<- str_replace_all(original_data$Repeat, "-","_")
 
 
 variables<-read.csv("Variables.csv")
-#variables <- Variables
 variables<-variables %>% pull()
 
 AIM_variables<-read.csv("AIM_variables.csv")
-#AIM_variables <- AIM_variables
 AIM_variables<-AIM_variables %>% pull()
 
 Zero_to_NotZero<-function(x){
@@ -100,22 +96,12 @@ F2 <- function(V){
   res[w1] <- (V[w1])^( (1-V[w1])/V[w1])
   return(res)
 }
-# But the version F1 avoids some logical testing
-
-#clean <- function(x){ifelse(x<=0.01, 0.01, x)}
-
-#original_data <- original_data %>%
- # mutate(across(CD25pCD134p_CD4p:CD69pCD134p_CD39p, clean))
 
 SI_data<-original_data %>% 
   select(Sample:CD3_EVENTS, CD4p_CD3p,Tregs_EVENTS,Tregs_CD4p,CD39p_EVENTS, CD39p_CD4p, CD8p_CD3p, MFI_CD4_CD4p, MFI_CD8_CD8p)
 
 Stimulant <-(c("unstimulated", "CMV_peptides", "Infanrix", "CytoStim"))
 DonorID <- (c("Z007-5", "Z029-4", "Z032-2", "Z048-2", "Z054-1"))
-CVs_SI_data<-data.frame(Stimulant)
-#CVs_SI_data_donor<-data.frame(DonorID)
-
-#var <- "CD25pCD134p_CD4p"
 
 for (var in AIM_variables) {
   
@@ -140,52 +126,14 @@ for (var in AIM_variables) {
   SI_data<-merge(SI_data, data, by=c("DonorID","Stimulant","Operator","Repeat","DATE"))
   print(var)
   
-  CV_data<-SI_data %>% 
-    select(DonorID:Repeat, var) %>% 
-    mutate(across(DonorID:Repeat, as.factor)) %>% 
-    #group_by(DonorID,Stimulant) %>%
-    #summarize(CV_by_donor= (sd(.data[[var]])/mean(.data[[var]]))*100) %>% 
-    group_by(Stimulant) %>% 
-    summarize(!!var:=(sd(.data[[var]])/mean(.data[[var]]))*100) %>% 
-    mutate(across(2, round, 1 ))
-  
-  CVs_SI_data<-merge(CVs_SI_data, CV_data, by=c("Stimulant"))
-  #CVs_SI_data<-merge(CVs_SI_data, CVs_SI_data_donor, by=c("DonorID"))
-  #pivot_wider(names_from = Repeat, values_from = var) %>% 
-  
-  #mutate(across((test=mean(C3_1:C2_2, na.rm = T))))
-  #mutate(test=(sd(var)/mean(var)))
-  #subtracted_data$Stimulant <-recode_factor(subtracted_data$Stimulant, COVID_S_Ag = "COVID_S_antigen")
 }
 #just moving the Sample column to be the first column after failing to do so using other methods
 SI_data<-SI_data %>% 
   relocate(Sample)
 
-#adding parent gate data and re-ordering columns
-SI_data<-SI_data %>%
-  mutate(CD4p_EVENTS=CD3_EVENTS*CD4p_CD3p/100) %>% 
-  mutate(CD8p_EVENTS=CD3_EVENTS*CD8p_CD3p/100) %>% 
-  mutate(across(c("CD4p_EVENTS","CD8p_EVENTS"), round)) %>% 
-  relocate("CD4p_EVENTS", .after="CD4p_CD3p") %>% 
-  relocate("Tregs_CD4p", .after="CD134pCD137p_CD4p") %>%
-  relocate("Tregs_EVENTS", .after="Tregs_CD4p") %>% 
-  relocate("CD39p_CD4p", .after="CD134pCD137p_Tregs") %>% 
-  relocate("CD39p_EVENTS", .after="CD39p_CD4p") %>% 
-  relocate("CD8p_CD3p", .after="CD134pCD137p_CD39p") %>% 
-  relocate("CD8p_EVENTS", .after="CD8p_CD3p") %>% 
-  relocate("MFI_CD4_CD4p", .after="CD137pCD107ap_CD8p") %>% 
-  relocate("MFI_CD8_CD8p", .after="MFI_CD4_CD4p")
-#saving all of the new subtracted values in an excel file.
-wb <- createWorkbook()
-addWorksheet(wb, "sheet 1")
-writeData(wb, "sheet 1", SI_data)
-saveWorkbook(wb,"20240814_AIM Repeat C_SIs with GB new boxcoxDelta.xlsx",overwrite = TRUE)
+#saving all of the new subtracted values in a csv file.
+write.csv(SI_data, "20240814_AIM Repeat C_cSIs.csv")
 
-#saving all of the CVs in an excel file
-wb <- createWorkbook()
-addWorksheet(wb, "sheet 1")
-writeData(wb, "sheet 1", CVs_SI_data)
-saveWorkbook(wb,"20240814_AIM Repeat C_CVs by stimulant from SIs with GB new boxcoxDelta.xlsx",overwrite = TRUE)
 #to allow plotting on a log scale- add 0.001 to any 0 values
 Zero_to_NotZero<-function(x){
   ifelse((x<=0.001), 0.001, x)
