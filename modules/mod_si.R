@@ -22,7 +22,7 @@ siUI <- function(id, title = "Stim‑Index (SI)") {
       numericInput(ns("theta_H"),    "Theta (H) – leave NA for automatic", value = NA, step = 0.05),
       numericInput(ns("scale_s"),    "Scaling factor (s)",     value = 1,  min = 0),
       numericInput(ns("offset_e"),   "Offset (e)",             value = 0),
-      numericInput(ns("oob"),        "OOB replacement value",  value = 1e-3, min = 0),
+      numericInput(ns("oob"),        "OOB.V replacement value",  value = 1e-3, min = 0),
       textInput(   ns("unstimulated"), "Unstimulated parameter", value = "unstimulated"),
       textAreaInput(ns("stimulants"),  "Stimulants (comma separated)",
                     "CMV_protein, CMV_peptides, CytoStim, Infanrix, COVID_S_Ag"),
@@ -136,6 +136,8 @@ siServer <- function(id) {
         s_val      <- input$scale_s
         e_val      <- input$offset_e
         
+        unstim_baseline <- 0.25
+        
         # Transformation function applied per-group ------------------------
         transform_si <- function(chunk, unstim) {
           unstim_row <- chunk %>% filter(!!sym(stim_column) == unstim)
@@ -149,7 +151,7 @@ siServer <- function(id) {
                    ~ {
                      col_name <- cur_column()
                      mapply(function(val, stim_label) {
-                       if (stim_label == unstim) return(val)          # leave unstim row untouched
+                       if (stim_label == unstim) return(unstim_baseline)          # unstim will be 0.25
                        SI(
                          x1        = val,
                          x0        = unstim_vals[[col_name]],
