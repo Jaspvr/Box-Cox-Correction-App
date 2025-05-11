@@ -268,7 +268,7 @@ lambdaUI <- function(id, title = "Lambda Estimator") {
     title,
     sidebarPanel(
       fileInput(ns("csv"), "Upload CSV", accept = ".csv"),
-      textInput(ns("stim_col"),   "Column that contains stimulus names",  "Stim"),
+      uiOutput(ns("stim_col")),
       textInput(ns("stim_lvl"),   "Stimulant",            "COVID_WT"),
       textInput(ns("unstim_lvl"), "Unstimulated Parameter",          "DMSO"),
       numericInput(ns("eps"), "Epsilon", value = 0.001, step = 0.0005),
@@ -286,12 +286,19 @@ lambdaUI <- function(id, title = "Lambda Estimator") {
 lambdaServer <- function(id) {
   moduleServer(id, function(input, output, session) {
 
-    # populate AIM variable selector once the CSV is in
+    # populate AIM and stim variable selector once the CSV is in
     output$aim_selector <- renderUI({
       req(input$csv)
       df <- read.csv(input$csv$datapath, nrows = 1, stringsAsFactors = FALSE)
       selectInput(session$ns("aim_var"), "AIM Variable (column)",
                   choices = names(df), selected = names(df)[1])
+    })
+    
+    output$stim_col_selector <- renderUI({
+      req(input$csv)
+      df <- read.csv(input$csv$datapath, nrows = 1, stringsAsFactors = FALSE)
+      selectInput(session$ns("stim_col"), "Stimulant Column",
+                  choices = names(df), selected = "Stim")
     })
 
     # run on "Run"
