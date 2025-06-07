@@ -53,7 +53,7 @@ boxcoxServer <- function(id) {
     })
     
     
-    # ---------------------------- Box-Cox Calculation Start --------------------------------------------
+    # Box-Cox Calculation Start
     
     Neg_to_Zero<-function(x){
       ifelse((x<=0.005), 0.005, x)
@@ -104,13 +104,13 @@ boxcoxServer <- function(id) {
     # Function to prepare original CSV file for download
     output$download <- downloadHandler(
       filename = function() {
-        paste(Sys.Date(), "transformed-data.csv", sep = "_")  # Provide a meaningful default filename
+        paste(Sys.Date(), "transformed-data.csv", sep = "_")
       },
       content = function(file) {
         # Ensure Data and variables are inputted
         req(input$patientData, input$AIMVariables)
         
-        allDataValue <- all_data_filtered()  # Get the current value of all_data
+        allDataValue <- all_data_filtered()
         variableNames <- input$AIMVariables
         stim_column <- input$stim_column
         if (is.null(allDataValue)) {
@@ -165,7 +165,7 @@ boxcoxServer <- function(id) {
           temp_file <- tempfile(fileext = ".csv")
           write.csv(transformed_data, temp_file, row.names = FALSE)
           lastCreatedFile(temp_file)
-          file.copy(lastCreatedFile(), file)  # Copy the last created file to the download location
+          file.copy(lastCreatedFile(), file)
         }, error = function(e) {
           shinyalert("Error", paste("Error during transformation:", e$message), type = "error")
           return(NULL)

@@ -1,17 +1,4 @@
-## ---- modules/mod_si.R --------------------------------------------------
-## Shiny module for the Stim‑Index (SI) transformation
-## -----------------------------------------------------------------------
-## • UI  : siUI(id)
-## • Server : siServer(id)
-##
-##  This module is intentionally parallel to `mod_boxcox.R`, so that the
-##  surrounding app.R only has to call `siUI/siServer` and everything else
-##  feels identical to the operator.
-## -----------------------------------------------------------------------
-
-# ────────────────────────────────────────────────────────────────────────────
-# UI FUNCTION ───────────────────────────────────────────────────────────────
-# ────────────────────────────────────────────────────────────────────────────
+# UI FUNCTION
 siUI <- function(id, title = "Stim‑Index (SI)") {
   ns <- NS(id)
   tabPanel(
@@ -38,13 +25,10 @@ siUI <- function(id, title = "Stim‑Index (SI)") {
   )
 }
 
-# ────────────────────────────────────────────────────────────────────────────
-# SERVER FUNCTION ───────────────────────────────────────────────────────────
-# ────────────────────────────────────────────────────────────────────────────
+# Server Function
 siServer <- function(id) {
   moduleServer(id, function(input, output, session) {
     
-    # ───────── Helper: SI formula (verbatim from your script) ────────────
     SI <- function(x1, x0, L = 0.5, H = NULL, s = 1, e = 0, OOB.V = 1e-3, corrected = TRUE) {
       F1 <- function(L) {
         sign0 <- function(v) { s <- sign(v); s[s == 0] <- 1; s }
@@ -79,10 +63,8 @@ siServer <- function(id) {
       res
     }
     
-    # ───────── Reactive data -------------------------------------------------
     lastCreatedFile <- reactiveVal(NULL)
     
-    # raw upload -------------------------------------------------------------
     all_data_raw <- reactive({
       req(input$patientData)
       tryCatch(
@@ -91,7 +73,6 @@ siServer <- function(id) {
       )
     })
     
-    # update selectors whenever the file changes ----------------------------
     observe({
       req(all_data_raw())
       updateSelectInput(session, "grouping_columns", choices = names(all_data_raw()))
@@ -99,10 +80,9 @@ siServer <- function(id) {
       updateSelectInput(session, "stim_column",       choices = names(all_data_raw()))
     })
     
-    # preview table ----------------------------------------------------------
+    # preview table
     output$table1 <- renderDT({ req(all_data_raw()); all_data_raw() })
     
-    # arranged version (respect grouping columns) ---------------------------
     all_data_filtered <- reactive({
       req(all_data_raw())
       gc <- input$grouping_columns
@@ -112,7 +92,6 @@ siServer <- function(id) {
       )
     })
     
-    # ───────── Download handler --------------------------------------------
     output$download <- downloadHandler(
       filename = function() paste(Sys.Date(), "si-transformed.csv", sep = "_"),
       content  = function(file) {
@@ -138,7 +117,7 @@ siServer <- function(id) {
         
         unstim_baseline <- 0.25
         
-        # Transformation function applied per-group ------------------------
+        # Transformation function applied per-group
         transform_si <- function(chunk, unstim) {
           unstim_row <- chunk %>% filter(!!sym(stim_column) == unstim)
           if (nrow(unstim_row) == 0) return(chunk)                     # no unstim row → return as‑is
@@ -168,7 +147,7 @@ siServer <- function(id) {
           chunk
         }
         
-        # apply transformation ---------------------------------------------
+        # apply transformation
         transformed <- tryCatch(
           df %>%
             group_by(across(all_of(grouping_cols))) %>%
@@ -177,7 +156,6 @@ siServer <- function(id) {
           error = function(e) { shinyalert("Error", paste("Transformation error:", e$message), type = "error"); NULL }
         )
         
-        # write to disk ------------------------------------------------------
         tmp <- tempfile(fileext = ".csv")
         write.csv(transformed, tmp, row.names = FALSE)
         lastCreatedFile(tmp)
