@@ -272,7 +272,7 @@ lambdaUI <- function(id, title = "Lambda Estimator") {
       textInput(ns("stim_lvl"),   "Stimulant",            "COVID_WT"),
       textInput(ns("unstim_lvl"), "Unstimulated Parameter",          "DMSO"),
       numericInput(ns("eps"), "Epsilon", value = 0.001, step = 0.0005),
-      uiOutput(ns("aim_selector")),       # populated after upload
+      uiOutput(ns("aim_selector")),
       actionButton(ns("run"), "Run")
     ),
     mainPanel(
@@ -282,7 +282,6 @@ lambdaUI <- function(id, title = "Lambda Estimator") {
 }
 
 
-# Uses the functions defined at the start
 lambdaServer <- function(id) {
   moduleServer(id, function(input, output, session) {
 
@@ -311,7 +310,7 @@ lambdaServer <- function(id) {
 
       # open a fresh graphics device inside renderPlot
       output$lambda_plot <- renderPlot({
-        test.lambda.lik(x1 = Stim, x0 = Unstim)  # this prints the plots
+        test.lambda.lik(x1 = Stim, x0 = Unstim)  # this ultimately prints the plots
       })
     })
   })

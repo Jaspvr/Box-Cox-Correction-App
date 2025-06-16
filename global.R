@@ -1,10 +1,9 @@
-## ── global.R ─────────────────────────────────────────────────────────────
 library(shiny)
 library(shinythemes)
 library(shinyalert)
 library(DT)
 
-library(tidyverse)      # ggplot2, dplyr, tidyr, readr, stringr …
+library(tidyverse)
 library(openxlsx)
 library(IDPmisc)
 library(glue)

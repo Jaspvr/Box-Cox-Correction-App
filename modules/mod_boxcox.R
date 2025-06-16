@@ -20,7 +20,6 @@ boxcoxUI <- function(id, title = "Box-Cox") {
 }
 
 
-
 # Define server function
 boxcoxServer <- function(id) {
   moduleServer(id, function(input, output, session) {
@@ -53,8 +52,6 @@ boxcoxServer <- function(id) {
     })
     
     
-    # ---------------------------- Box-Cox Calculation Start --------------------------------------------
-    
     Neg_to_Zero<-function(x){
       ifelse((x<=0.005), 0.005, x)
     }
@@ -84,17 +81,17 @@ boxcoxServer <- function(id) {
       }
     }
     
-    # Assuming all_data is defined as before, we create a new reactive expression for the filtered data
+    # Create a new reactive expression for the filtered data
     all_data_filtered <- reactive({
-      req(all_data_raw())  # Ensure all_data is available
-      data <- all_data_raw()  # Get the data frame
+      req(all_data_raw())
+      data <- all_data_raw()
       
       # These are the columns that are used to make groups based on rows having the same value for each of these columns
       grouping_columns <- input$grouping_columns
       
       tryCatch({
-        data %>% 
-          arrange(across(all_of(grouping_columns))) # Arrange by inputted identifier columns instead
+        # Arrange by inputted grouping columns instead
+        data %>% arrange(across(all_of(grouping_columns)))
       }, error = function(e) {
         shinyalert("Error", paste("Error grouping data:", e$message), type = "error")
         return(NULL)
@@ -104,13 +101,13 @@ boxcoxServer <- function(id) {
     # Function to prepare original CSV file for download
     output$download <- downloadHandler(
       filename = function() {
-        paste(Sys.Date(), "transformed-data.csv", sep = "_")  # Provide a meaningful default filename
+        paste(Sys.Date(), "transformed-data.csv", sep = "_")
       },
       content = function(file) {
         # Ensure Data and variables are inputted
         req(input$patientData, input$AIMVariables)
         
-        allDataValue <- all_data_filtered()  # Get the current value of all_data
+        allDataValue <- all_data_filtered()
         variableNames <- input$AIMVariables
         stim_column <- input$stim_column
         if (is.null(allDataValue)) {
@@ -127,7 +124,6 @@ boxcoxServer <- function(id) {
         unstimulated_parameter <- input$unstimulated
         grouping_columns <- input$grouping_columns
         
-        # Error handling:
         if (length(grouping_columns) == 0) {
           shinyalert("Error", "Grouping columns are not properly selected.", type = "error")
           return()

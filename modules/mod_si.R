@@ -1,17 +1,3 @@
-## ---- modules/mod_si.R --------------------------------------------------
-## Shiny module for the Stim‑Index (SI) transformation
-## -----------------------------------------------------------------------
-## • UI  : siUI(id)
-## • Server : siServer(id)
-##
-##  This module is intentionally parallel to `mod_boxcox.R`, so that the
-##  surrounding app.R only has to call `siUI/siServer` and everything else
-##  feels identical to the operator.
-## -----------------------------------------------------------------------
-
-# ────────────────────────────────────────────────────────────────────────────
-# UI FUNCTION ───────────────────────────────────────────────────────────────
-# ────────────────────────────────────────────────────────────────────────────
 siUI <- function(id, title = "Stim‑Index (SI)") {
   ns <- NS(id)
   tabPanel(
@@ -38,13 +24,10 @@ siUI <- function(id, title = "Stim‑Index (SI)") {
   )
 }
 
-# ────────────────────────────────────────────────────────────────────────────
-# SERVER FUNCTION ───────────────────────────────────────────────────────────
-# ────────────────────────────────────────────────────────────────────────────
+
 siServer <- function(id) {
   moduleServer(id, function(input, output, session) {
     
-    # ───────── Helper: SI formula (verbatim from your script) ────────────
     SI <- function(x1, x0, L = 0.5, H = NULL, s = 1, e = 0, OOB.V = 1e-3, corrected = TRUE) {
       F1 <- function(L) {
         sign0 <- function(v) { s <- sign(v); s[s == 0] <- 1; s }
@@ -54,7 +37,7 @@ siServer <- function(id) {
         f1
       }
       
-      d <- dim(x1)                                     # NULL if vector
+      d <- dim(x1)
       if (!is.null(d) && any(dim(x0) != d)) stop("x0 and x1 not the same dimension")
       
       # scaling
@@ -79,10 +62,9 @@ siServer <- function(id) {
       res
     }
     
-    # ───────── Reactive data -------------------------------------------------
     lastCreatedFile <- reactiveVal(NULL)
     
-    # raw upload -------------------------------------------------------------
+    # raw upload
     all_data_raw <- reactive({
       req(input$patientData)
       tryCatch(
@@ -91,7 +73,7 @@ siServer <- function(id) {
       )
     })
     
-    # update selectors whenever the file changes ----------------------------
+    # update selectors whenever the file changes
     observe({
       req(all_data_raw())
       updateSelectInput(session, "grouping_columns", choices = names(all_data_raw()))
@@ -99,10 +81,10 @@ siServer <- function(id) {
       updateSelectInput(session, "stim_column",       choices = names(all_data_raw()))
     })
     
-    # preview table ----------------------------------------------------------
+    # preview table
     output$table1 <- renderDT({ req(all_data_raw()); all_data_raw() })
     
-    # arranged version (respect grouping columns) ---------------------------
+    # arranged version
     all_data_filtered <- reactive({
       req(all_data_raw())
       gc <- input$grouping_columns
@@ -112,7 +94,6 @@ siServer <- function(id) {
       )
     })
     
-    # ───────── Download handler --------------------------------------------
     output$download <- downloadHandler(
       filename = function() paste(Sys.Date(), "si-transformed.csv", sep = "_"),
       content  = function(file) {
@@ -130,28 +111,28 @@ siServer <- function(id) {
         
         # parameters for SI (user‑supplied)
         lambda_val <- input$lambda
-        corrected  <- isTRUE(input$corrected)
-        oob_value  <- input$oob
-        h_val      <- if (is.na(input$theta_H)) NULL else input$theta_H
-        s_val      <- input$scale_s
-        e_val      <- input$offset_e
+        corrected <- isTRUE(input$corrected)
+        oob_value <- input$oob
+        h_val <- if (is.na(input$theta_H)) NULL else input$theta_H
+        s_val <- input$scale_s
+        e_val <- input$offset_e
         
         unstim_baseline <- 0.25
         
-        # Transformation function applied per-group ------------------------
+        # Transformation function applied per-group
         transform_si <- function(chunk, unstim) {
           unstim_row <- chunk %>% filter(!!sym(stim_column) == unstim)
-          if (nrow(unstim_row) == 0) return(chunk)                     # no unstim row → return as‑is
+          if (nrow(unstim_row) == 0) return(chunk)
           
           unstim_vals <- unstim_row[variableNames]
-          current_stim <- chunk[[stim_column]]                         # vector of length nrows
+          current_stim <- chunk[[stim_column]]
           
           chunk <- chunk %>% mutate(
             across(all_of(variableNames),
                    ~ {
                      col_name <- cur_column()
                      mapply(function(val, stim_label) {
-                       if (stim_label == unstim) return(unstim_baseline)          # unstim will be 0.25
+                       if (stim_label == unstim) return(unstim_baseline)
                        SI(
                          x1        = val,
                          x0        = unstim_vals[[col_name]],
@@ -168,7 +149,7 @@ siServer <- function(id) {
           chunk
         }
         
-        # apply transformation ---------------------------------------------
+        # apply transformation
         transformed <- tryCatch(
           df %>%
             group_by(across(all_of(grouping_cols))) %>%
@@ -177,7 +158,6 @@ siServer <- function(id) {
           error = function(e) { shinyalert("Error", paste("Transformation error:", e$message), type = "error"); NULL }
         )
         
-        # write to disk ------------------------------------------------------
         tmp <- tempfile(fileext = ".csv")
         write.csv(transformed, tmp, row.names = FALSE)
         lastCreatedFile(tmp)
