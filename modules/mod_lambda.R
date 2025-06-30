@@ -261,7 +261,7 @@ plotres3 <- function(MyRes){
 }
 
 # UI and Server
-lambdaUI <- function(id, title = "Lambda Estimator") {
+lambdaUI <- function(id, title = "Lambda (λ) Estimation Tools") {
   ns <- NS(id)
 
   tabPanel(

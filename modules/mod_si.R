@@ -1,4 +1,4 @@
-siUI <- function(id, title = "Stim‑Index (SI)") {
+siUI <- function(id, title = "Advanced Scale-Independent Modified Stimulation Index (mSI)") {
   ns <- NS(id)
   tabPanel(
     title,

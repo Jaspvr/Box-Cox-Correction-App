@@ -1,4 +1,4 @@
-boxcoxUI <- function(id, title = "Box-Cox") {
+boxcoxUI <- function(id, title = "Simple Box-Cox Stimulation Index (SI)") {
   ns <- NS(id)
   tabPanel(
     title,
