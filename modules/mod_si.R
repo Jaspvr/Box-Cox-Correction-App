@@ -3,20 +3,20 @@ siUI <- function(id, title = "Advanced Scale-Independent Modified Stimulation In
   tabPanel(
     title,
     sidebarPanel(
-      numericInput(ns("lambda"),     "Lambda (L)",            value = 0.5, step = 0.05, min = 0, max = 1),
+      numericInput(ns("lambda"),     "Lambda value",            value = 0.5, step = 0.05, min = 0, max = 1),
       checkboxInput(ns("corrected"), "Apply F1(L) correction", value = TRUE),
       numericInput(ns("theta_H"),    "Theta (H) – leave NA for automatic", value = NA, step = 0.05),
-      numericInput(ns("scale_s"),    "Scaling factor (s)",     value = 1,  min = 0),
-      numericInput(ns("offset_e"),   "Offset (e)",             value = 0),
+      numericInput(ns("scale_s"),    "Scaling factor",     value = 1,  min = 0),
+      numericInput(ns("offset_e"),   "Offset",             value = 0),
       numericInput(ns("oob"),        "OOB.V replacement value",  value = 1e-3, min = 0),
-      textInput(   ns("unstimulated"), "Unstimulated parameter", value = "unstimulated"),
+      textInput(   ns("unstimulated"), "Unstimulated Parameter", value = "unstimulated"),
       textAreaInput(ns("stimulants"),  "Stimulants (comma separated)",
                     "CMV_protein, CMV_peptides, CytoStim, Infanrix, COVID_S_Ag"),
-      fileInput(   ns("patientData"),  "Input patient data (CSV)"),
-      selectInput( ns("AIMVariables"),     "AIM variables",      choices = NULL, multiple = TRUE),
-      selectInput( ns("grouping_columns"), "Grouping columns",    choices = NULL, multiple = TRUE),
-      selectInput( ns("stim_column"),      "Stimulant column",    choices = NULL),
-      downloadButton(ns("download"),   "Download transformed data")
+      fileInput(   ns("patientData"),  "Upload CSV)"),
+      selectInput( ns("AIMVariables"),     "AIM Variables",      choices = NULL, multiple = TRUE),
+      selectInput( ns("grouping_columns"), "Grouping Columns",    choices = NULL, multiple = TRUE),
+      selectInput( ns("stim_column"),      "Stimulant Column",    choices = NULL),
+      downloadButton(ns("download"),   "Download Transformed Data")
     ),
     mainPanel(
       DTOutput(ns("table1"))

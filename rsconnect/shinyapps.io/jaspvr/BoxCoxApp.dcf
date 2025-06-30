@@ -5,9 +5,9 @@ account: jaspvr
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 11677862
-bundleId: 9013490
+bundleId: 10540195
 url: https://jaspvr.shinyapps.io/BoxCoxApp/
 version: 1
 asMultiple: FALSE
 asStatic: FALSE
-ignoredFiles: PREVENT_Boxcox_Combined.csv|README.md
+ignoredFiles: README.md

@@ -3,11 +3,11 @@ boxcoxUI <- function(id, title = "Simple Box-Cox Stimulation Index (SI)") {
   tabPanel(
     title,
     sidebarPanel(
-      numericInput(ns("lambda"),       "Input Lambda value", value = 0.5),
+      numericInput(ns("lambda"),       "Lambda value", value = 0.5),
       textInput(   ns("unstimulated"), "Unstimulated Parameter", value = "unstimulated"),
       textAreaInput(ns("stimulants"),  "Stimulants (comma separated)",
                     "CMV_protein, CMV_peptides, CytoStim, Infanrix, COVID_S_Ag"),
-      fileInput(   ns("patientData"),  "Input Patient Data (CSV)"),
+      fileInput(   ns("patientData"),  "Upload CSV"),
       selectInput( ns("AIMVariables"), "AIM Variables",   choices = NULL, multiple = TRUE),
       selectInput( ns("grouping_columns"),    "Grouping Columns",choices = NULL, multiple = TRUE),
       selectInput( ns("stim_column"),      "Stimulant Column",choices = NULL),
