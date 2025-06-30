@@ -3,9 +3,9 @@ siUI <- function(id, title = "Advanced Scale-Independent Modified Stimulation In
   tabPanel(
     title,
     sidebarPanel(
-      numericInput(ns("lambda"),     "Lambda value",            value = 0.5, step = 0.05, min = 0, max = 1),
-      checkboxInput(ns("corrected"), "Apply F1(L) correction", value = TRUE),
-      numericInput(ns("theta_H"),    "Theta (H) – leave NA for automatic", value = NA, step = 0.05),
+      numericInput(ns("lambda"),     "Lambda (λ) value",            value = 0.5, step = 0.05, min = 0, max = 1),
+      checkboxInput(ns("corrected"), "Apply F1(λ) correction", value = TRUE),
+      numericInput(ns("theta_H"),    "Theta (θ) – leave NA for automatic", value = NA, step = 0.05),
       numericInput(ns("scale_s"),    "Scaling factor",     value = 1,  min = 0),
       numericInput(ns("offset_e"),   "Offset",             value = 0),
       numericInput(ns("oob"),        "OOB.V replacement value",  value = 1e-3, min = 0),

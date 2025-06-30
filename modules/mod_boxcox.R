@@ -3,7 +3,7 @@ boxcoxUI <- function(id, title = "Simple Box-Cox Stimulation Index (SI)") {
   tabPanel(
     title,
     sidebarPanel(
-      numericInput(ns("lambda"),       "Lambda value", value = 0.5),
+      numericInput(ns("lambda"),       "Lambda (λ) value", value = 0.5),
       textInput(   ns("unstimulated"), "Unstimulated Parameter", value = "unstimulated"),
       textAreaInput(ns("stimulants"),  "Stimulants (comma separated)",
                     "CMV_protein, CMV_peptides, CytoStim, Infanrix, COVID_S_Ag"),
