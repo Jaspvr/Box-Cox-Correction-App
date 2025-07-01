@@ -273,6 +273,13 @@ lambdaUI <- function(id, title = "Lambda (λ) Estimation Tools") {
       textInput(ns("unstim_lvl"), "Unstimulated Parameter",          "DMSO"),
       numericInput(ns("eps"), "Epsilon", value = 0.001, step = 0.0005),
       uiOutput(ns("aim_selector")),
+      
+      # Restore default placeholders and clear all placeholders
+      tags$hr(),
+      actionButton(ns("clear"),  "Clear inputs"),
+      actionButton(ns("reset"),  "Restore defaults"),
+      tags$hr(),
+      
       actionButton(ns("run"), "Run")
     ),
     mainPanel(
@@ -284,6 +291,27 @@ lambdaUI <- function(id, title = "Lambda (λ) Estimation Tools") {
 
 lambdaServer <- function(id) {
   moduleServer(id, function(input, output, session) {
+    defaults <- list(
+      stim_col  = "Stim",
+      stim_lvl  = "SARSCoV2_Spike",
+      unstim_lvl = "DMSO",
+      eps       = 0.001
+    )
+    
+    observeEvent(input$clear, {
+      updateTextInput( session, "stim_col",   value = "")
+      updateTextInput( session, "stim_lvl",   value = "")
+      updateTextInput( session, "unstim_lvl", value = "")
+      updateNumericInput(session, "eps",      value = NA)
+    })
+    
+    ## ------ Reset: back to defaults --------------------------------------
+    observeEvent(input$reset, {
+      updateTextInput( session, "stim_col",   value = defaults$stim_col)
+      updateTextInput( session, "stim_lvl",   value = defaults$stim_lvl)
+      updateTextInput( session, "unstim_lvl", value = defaults$unstim_lvl)
+      updateNumericInput(session, "eps",      value = defaults$eps)
+    })
 
     # populate AIM variable selector once the CSV is in
     output$aim_selector <- renderUI({
