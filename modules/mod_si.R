@@ -6,7 +6,6 @@ siUI <- function(id, title = "Advanced Scale-Independent Modified Stimulation In
       numericInput(ns("lambda"),     "Lambda (λ) value",            value = 0.5, step = 0.05, min = 0, max = 1),
       checkboxInput(ns("corrected"), "Apply F1(λ) correction", value = TRUE),
       numericInput(ns("theta_H"),    "Theta (θ) – leave NA for automatic", value = NA, step = 0.05),
-      numericInput(ns("scale_s"),    "Scaling factor",     value = 1,  min = 0),
       numericInput(ns("offset_e"),   "Epsilon",             value = 1e-3),
       numericInput(ns("oob"),        "Replacement value for undefined SI",  value = 1e-3, min = 0),
       textInput(   ns("unstimulated"), "Unstimulated Parameter", value = "DMSO"),
@@ -75,7 +74,6 @@ siServer <- function(id) {
       lambda       = 0.5,
       corrected    = TRUE,
       theta_H      = NA,
-      scale_s      = 1,
       offset_e     = 1e-3,
       oob          = 1e-3,
       unstimulated = "DMSO",
@@ -87,7 +85,6 @@ siServer <- function(id) {
       updateNumericInput(session, "lambda",     value = NA)
       updateCheckboxInput(session, "corrected", value = FALSE)
       updateNumericInput(session, "theta_H",    value = NA)
-      updateNumericInput(session, "scale_s",    value = NA)
       updateNumericInput(session, "offset_e",   value = NA)
       updateNumericInput(session, "oob",        value = NA)
       
@@ -104,7 +101,6 @@ siServer <- function(id) {
       updateNumericInput(session, "lambda",     value = defaults$lambda)
       updateCheckboxInput(session, "corrected", value = defaults$corrected)
       updateNumericInput(session, "theta_H",    value = defaults$theta_H)
-      updateNumericInput(session, "scale_s",    value = defaults$scale_s)
       updateNumericInput(session, "offset_e",   value = defaults$offset_e)
       updateNumericInput(session, "oob",        value = defaults$oob)
       
@@ -162,8 +158,9 @@ siServer <- function(id) {
         corrected <- isTRUE(input$corrected)
         oob_value <- input$oob
         h_val <- if (is.na(input$theta_H)) NULL else input$theta_H
-        s_val <- input$scale_s
         e_val <- input$offset_e
+        
+        s_val <- 1    # fixed scaling factor
         
         unstim_baseline <- 0.25
         
