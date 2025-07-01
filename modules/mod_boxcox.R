@@ -4,13 +4,20 @@ boxcoxUI <- function(id, title = "Simple Box-Cox Stimulation Index (SI)") {
     title,
     sidebarPanel(
       numericInput(ns("lambda"),       "Lambda (λ) value", value = 0.5),
-      textInput(   ns("unstimulated"), "Unstimulated Parameter", value = "unstimulated"),
+      textInput(   ns("unstimulated"), "Unstimulated Parameter", value = "DMSO"),
       textAreaInput(ns("stimulants"),  "Stimulants (comma separated)",
-                    "CMV_protein, CMV_peptides, CytoStim, Infanrix, COVID_S_Ag"),
+                    "SARSCoV2_Spike"),
       fileInput(   ns("patientData"),  "Upload CSV"),
       selectInput( ns("AIMVariables"), "AIM Variables",   choices = NULL, multiple = TRUE),
       selectInput( ns("grouping_columns"),    "Grouping Columns",choices = NULL, multiple = TRUE),
       selectInput( ns("stim_column"),      "Stimulant Column",choices = NULL),
+      
+      # Restore default placeholders and clear all placeholders
+      tags$hr(),
+      actionButton(ns("clear"),  "Clear inputs"),
+      actionButton(ns("reset"),  "Restore defaults"),
+      tags$hr(),
+      
       downloadButton(ns("download"),   "Download Transformed Data")
     ),
     mainPanel(
@@ -25,6 +32,29 @@ boxcoxServer <- function(id) {
   moduleServer(id, function(input, output, session) {
     # Reactive value to store the path of the last created file
     lastCreatedFile <- reactiveVal()
+    
+    defaults <- list(
+      lambda       = 0.5,
+      unstimulated = "DMSO",
+      stimulants   = "SARSCoV2_Spike"
+    )
+    
+    # Clear button
+    observeEvent(input$clear, {
+      updateNumericInput(session, "lambda",       value = NA)
+      updateTextInput(   session, "unstimulated", value = "")
+      updateTextAreaInput(session, "stimulants",  value = "")
+      updateSelectInput( session, "AIMVariables",      selected = character(0))
+      updateSelectInput( session, "grouping_columns",  selected = character(0))
+      updateSelectInput( session, "stim_column",       selected = character(0))
+    })
+    
+    # Reset to default
+    observeEvent(input$reset, {
+      updateNumericInput(session, "lambda",       value = defaults$lambda)
+      updateTextInput(   session, "unstimulated", value = defaults$unstimulated)
+      updateTextAreaInput(session, "stimulants",  value = defaults$stimulants)
+    })
     
     # Reactive function to read uploaded Patient Data CSV file
     all_data_raw <- reactive({

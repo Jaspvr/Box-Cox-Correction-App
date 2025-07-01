@@ -269,7 +269,7 @@ lambdaUI <- function(id, title = "Lambda (λ) Estimation Tools") {
     sidebarPanel(
       fileInput(ns("csv"), "Upload CSV", accept = ".csv"),
       textInput(ns("stim_col"),   "Stimulant Column Name",  "Stim"),
-      textInput(ns("stim_lvl"),   "Stimulant",            "COVID_WT"),
+      textInput(ns("stim_lvl"),   "Stimulant",            "SARSCoV2_Spike"),
       textInput(ns("unstim_lvl"), "Unstimulated Parameter",          "DMSO"),
       numericInput(ns("eps"), "Epsilon", value = 0.001, step = 0.0005),
       uiOutput(ns("aim_selector")),
