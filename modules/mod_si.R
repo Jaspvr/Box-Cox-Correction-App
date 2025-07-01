@@ -16,6 +16,13 @@ siUI <- function(id, title = "Advanced Scale-Independent Modified Stimulation In
       selectInput( ns("AIMVariables"),     "AIM Variables",      choices = NULL, multiple = TRUE),
       selectInput( ns("grouping_columns"), "Grouping Columns",    choices = NULL, multiple = TRUE),
       selectInput( ns("stim_column"),      "Stimulant Column",    choices = NULL),
+      
+      # Restore default placeholders and clear all placeholders
+      tags$hr(),
+      actionButton(ns("clear"),  "Clear inputs"),
+      actionButton(ns("reset"),  "Restore defaults"),
+      tags$hr(),
+      
       downloadButton(ns("download"),   "Download Transformed Data")
     ),
     mainPanel(
@@ -63,6 +70,47 @@ siServer <- function(id) {
     }
     
     lastCreatedFile <- reactiveVal(NULL)
+    
+    defaults <- list(
+      lambda       = 0.5,
+      corrected    = TRUE,
+      theta_H      = NA,
+      scale_s      = 1,
+      offset_e     = 0,
+      oob          = 1e-3,
+      unstimulated = "DMSO",
+      stimulants   = "SARSCoV2_Spike"
+    )
+    
+    # Clear inputs
+    observeEvent(input$clear, {
+      updateNumericInput(session, "lambda",     value = NA)
+      updateCheckboxInput(session, "corrected", value = FALSE)
+      updateNumericInput(session, "theta_H",    value = NA)
+      updateNumericInput(session, "scale_s",    value = NA)
+      updateNumericInput(session, "offset_e",   value = NA)
+      updateNumericInput(session, "oob",        value = NA)
+      
+      updateTextInput( session, "unstimulated", value = "")
+      updateTextAreaInput(session, "stimulants", value = "")
+      
+      updateSelectInput(session, "AIMVariables",      selected = character(0))
+      updateSelectInput(session, "grouping_columns",  selected = character(0))
+      updateSelectInput(session, "stim_column",       selected = character(0))
+    })
+    
+    # Restore default values for inputs
+    observeEvent(input$reset, {
+      updateNumericInput(session, "lambda",     value = defaults$lambda)
+      updateCheckboxInput(session, "corrected", value = defaults$corrected)
+      updateNumericInput(session, "theta_H",    value = defaults$theta_H)
+      updateNumericInput(session, "scale_s",    value = defaults$scale_s)
+      updateNumericInput(session, "offset_e",   value = defaults$offset_e)
+      updateNumericInput(session, "oob",        value = defaults$oob)
+      
+      updateTextInput( session, "unstimulated", value = defaults$unstimulated)
+      updateTextAreaInput(session, "stimulants", value = defaults$stimulants)
+    })
     
     # raw upload
     all_data_raw <- reactive({
