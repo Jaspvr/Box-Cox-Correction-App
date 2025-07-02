@@ -298,6 +298,7 @@ lambdaServer <- function(id) {
       eps       = 0.001
     )
     
+    # Clear inputs
     observeEvent(input$clear, {
       updateTextInput( session, "stim_col",   value = "")
       updateTextInput( session, "stim_lvl",   value = "")
@@ -305,7 +306,7 @@ lambdaServer <- function(id) {
       updateNumericInput(session, "eps",      value = NA)
     })
     
-    ## ------ Reset: back to defaults --------------------------------------
+    # Reset inputs to defaults
     observeEvent(input$reset, {
       updateTextInput( session, "stim_col",   value = defaults$stim_col)
       updateTextInput( session, "stim_lvl",   value = defaults$stim_lvl)

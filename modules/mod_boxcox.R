@@ -4,6 +4,10 @@ boxcoxUI <- function(id, title = "Simple Box-Cox Stimulation Index (SI)") {
     title,
     sidebarPanel(
       numericInput(ns("lambda"),       "Lambda (λ) value", value = 0.5),
+      
+      numericInput(ns("eps"), "Epsilon", value = 0.001,
+                   step = 0.0005, width = "100%"),
+      
       textInput(   ns("unstimulated"), "Unstimulated Parameter", value = "DMSO"),
       textAreaInput(ns("stimulants"),  "Stimulants (comma separated)",
                     "SARSCoV2_Spike"),
@@ -35,6 +39,7 @@ boxcoxServer <- function(id) {
     
     defaults <- list(
       lambda       = 0.5,
+      eps          = 0.001,
       unstimulated = "DMSO",
       stimulants   = "SARSCoV2_Spike"
     )
@@ -42,6 +47,7 @@ boxcoxServer <- function(id) {
     # Clear button
     observeEvent(input$clear, {
       updateNumericInput(session, "lambda",       value = NA)
+      updateNumericInput(session, "eps",    value = NA) 
       updateTextInput(   session, "unstimulated", value = "")
       updateTextAreaInput(session, "stimulants",  value = "")
       updateSelectInput( session, "AIMVariables",      selected = character(0))
@@ -52,6 +58,7 @@ boxcoxServer <- function(id) {
     # Reset to default
     observeEvent(input$reset, {
       updateNumericInput(session, "lambda",       value = defaults$lambda)
+      updateNumericInput(session, "eps",    value = defaults$eps) 
       updateTextInput(   session, "unstimulated", value = defaults$unstimulated)
       updateTextAreaInput(session, "stimulants",  value = defaults$stimulants)
     })
@@ -148,6 +155,8 @@ boxcoxServer <- function(id) {
           shinyalert("Error", "Patient data is empty or not properly loaded", type = "error")
           return()
         }
+        eps_val <- input$eps
+        allDataValue[variableNames] <- allDataValue[variableNames] + eps_val
         
         # Get user inputted values for stimulants, unstimulated parameter, and for the grouping columns
         stimulants <- strsplit(input$stimulants, ",\\s*")[[1]]
