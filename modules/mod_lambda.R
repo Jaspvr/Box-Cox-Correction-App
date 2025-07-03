@@ -110,47 +110,52 @@ test.lambda.lik <- function(x1, x0, LL=NULL,f1=NULL, method="rlm", DAT=NULL, plo
   return(res)
 }
 
-plotres <- function(res, tol = 0.1) {
-
-  pick <- list(                    # indices of “best” λ for each curve
+plotres <- function(res, line_w = 1.4) {
+  
+  # indices of the ‘best’ λ for each diagnostic
+  pick <- list(
     beta = which.min(abs(res$beta)),
     post = which.max(res$post.L),
     rho  = which.min(abs(res$rho)),
     ll   = which.max(res$L.Lik)
   )
-
+  
   base_thm <- theme_minimal(base_size = 13) +
-    theme(panel.grid    = element_line(size = 0.25),
-          panel.spacing = unit(1, "lines"))
-
-  p_beta <- ggplot(res, aes(LL, beta)) +
-    geom_hline(yintercept = 0, colour = "grey60") +
-    geom_line(size = 1.3, colour = "#1f77b4") +
-    geom_vline(xintercept = res$LL[pick$beta],
-               colour = "#1f77b4", linetype = "dashed", linewidth = 1) +
-    labs(y = expression(beta), x = NULL) + base_thm
-
-  p_post <- ggplot(res, aes(LL, post.L)) +
-    geom_line(size = 1.3, colour = "#E69F00") +
-    geom_vline(xintercept = res$LL[pick$post],
-               colour = "#E69F00", linetype = "dashed", linewidth = 1) +
-    labs(y = "Posterior", x = NULL) + base_thm
-
-  p_rho <- ggplot(res, aes(LL, rho)) +
-    geom_hline(yintercept = 0, colour = "grey60") +
-    geom_line(size = 1.3, colour = "#D62728") +
-    geom_vline(xintercept = res$LL[pick$rho],
-               colour = "#D62728", linetype = "dashed", linewidth = 1) +
-    scale_y_continuous(limits = c(-0.5, 0.5)) +
-    labs(y = expression(rho), x = expression(lambda)) + base_thm
-
-  p_ll  <- ggplot(res, aes(LL, L.Lik)) +
-    geom_line(size = 1.3, colour = "#8E44AD") +
-    geom_vline(xintercept = res$LL[pick$ll],
-               colour = "#8E44AD", linetype = "dashed", linewidth = 1) +
-    labs(y = "Log–lik.", x = expression(lambda)) + base_thm
-
-  (p_beta | p_post) / (p_rho | p_ll)   # patchwork grid
+    theme(panel.grid  = element_line(linewidth = .25),
+          plot.margin = margin(6, 30, 6, 6))          # space on the right for λ
+  
+  add_lab <- function(col, idx, digits = 2) {
+    annotate(
+      "text",
+      x      = res$LL[idx],
+      y      = Inf,          # very top edge of panel
+      vjust  = -0.4,         # -ve moves text *above* the edge
+      colour = col,
+      hjust  = 0.5,
+      label  = bquote(lambda==.(round(res$LL[idx], digits))),
+      size   = 4.3
+    )
+  }
+  
+  make_panel <- function(y, ylab, col, idx, ylim = NULL) {
+    ggplot(res, aes(LL, .data[[y]])) +
+      { if (!is.null(ylim)) scale_y_continuous(limits = ylim) } +
+      geom_line(linewidth = line_w, colour = col) +
+      geom_vline(xintercept = res$LL[idx], colour = col,
+                 linewidth = 1, linetype  = "dashed") +
+      add_lab(col, idx) +
+      labs(x = expression(lambda), y = ylab) +
+      base_thm +
+      coord_cartesian(clip = "off")                 # let λ text sit in margin
+  }
+  
+  p_beta <- make_panel("beta",   expression(beta),   "#1f77b4", pick$beta)
+  p_post <- make_panel("post.L", "Posterior",        "#E69F00", pick$post)
+  p_rho  <- make_panel("rho",    expression(rho),    "#D62728", pick$rho,
+                       ylim = c(-0.5, 0.5))
+  p_ll   <- make_panel("L.Lik",  "Log–lik.",         "#8E44AD", pick$ll)
+  
+  (p_beta | p_post) / (p_rho | p_ll)                 # patchwork grid
 }
 
 # UI and Server
