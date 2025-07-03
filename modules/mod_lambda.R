@@ -283,6 +283,8 @@ lambdaUI <- function(id, title = "Lambda (λ) Estimation Tools") {
       actionButton(ns("run"), "Run")
     ),
     mainPanel(
+      DT::DTOutput(ns("preview_table"), height = "250px"),   # new
+      tags$hr(),
       plotOutput(ns("lambda_plot"), height = 600)
     )
   )
@@ -297,6 +299,44 @@ lambdaServer <- function(id) {
       unstim_lvl = "DMSO",
       eps       = 0.001
     )
+    
+    # Read the csv
+    data_raw <- reactive({
+      req(input$csv)
+      tryCatch(
+        read.csv(input$csv$datapath,
+                 header = TRUE, sep = ",",
+                 fileEncoding = "UTF-8-BOM",
+                 check.names = FALSE,
+                 stringsAsFactors = FALSE),
+        error = function(e) {
+          shinyalert("Error",
+                     paste("Error reading CSV:", e$message),
+                     type = "error")
+          NULL
+        }
+      )
+    })
+    
+    # Preview table
+    output$preview_table <- renderDT({
+      req(data_raw())
+      datatable(
+        data_raw(),
+        options = list(pageLength = 5, scrollX = TRUE)
+      )
+    })
+    
+    # Populate AIM selector
+    output$aim_selector <- renderUI({
+      req(data_raw())
+      selectInput(
+        session$ns("aim_var"),
+        "AIM Variable (column)",
+        choices  = names(data_raw()),
+        selected = names(data_raw())[1]
+      )
+    })
     
     # Clear inputs
     observeEvent(input$clear, {
@@ -324,12 +364,12 @@ lambdaServer <- function(id) {
 
     # run on "Run"
     observeEvent(input$run, {
-      req(input$csv, input$aim_var, input$stim_col,
+      req(data_raw(), input$aim_var, input$stim_col,
           nzchar(input$stim_lvl), nzchar(input$unstim_lvl))
 
       # User input
       epsilon <- input$eps
-      data    <- read.csv(input$csv$datapath, stringsAsFactors = FALSE)
+      data    <- data_raw()
 
       Stim   <- data %>% filter(.data[[input$stim_col]] == input$stim_lvl)
       Unstim <- data %>% filter(.data[[input$stim_col]] == input$unstim_lvl)
