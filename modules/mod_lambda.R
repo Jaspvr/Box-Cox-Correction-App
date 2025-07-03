@@ -1,6 +1,8 @@
 library(shiny)
 library(MASS)
 library(tidyverse)
+library(ggplot2)
+library(patchwork)
 
 
 # Functions from given code
@@ -108,63 +110,47 @@ test.lambda.lik <- function(x1, x0, LL=NULL,f1=NULL, method="rlm", DAT=NULL, plo
   return(res)
 }
 
+plotres <- function(res, tol = 0.1) {
 
-plotres <- function(MyRes){
-  tolerance <- 0.1
-  L.est <- data.frame(method = c("beta", "post.L", "rho", "L.Lik", "L.Lik.LB", "L.Lik.UB"), L=NA)
-  
-  with(MyRes, {
-    w0 <- which.min(abs(beta))
-    par(mfrow=c(2,2))
-    plot(LL,beta, type="l")
-    abline(h=0)
-    if( abs(beta[w0])< tolerance ){
-      abline(v=LL[w0], col="blue")
-      text(LL[w0], beta[w0],paste("L=",round(LL[w0],2)), pos=2, col="blue" )
-      L.est$L[1] <<- LL[w0]
-    }
-    
-    w1 <- which.max(post.L)
-    plot(LL,post.L, type="l")
-    if( abs(beta[w1])< tolerance ){
-      abline(v=LL[w1], col="blue")
-      text(LL[w1], post.L[w1],paste("L=",round(LL[w1],2)), pos=2, col="blue" )
-      L.est$L[2] <<- LL[w1]
-    }
-    plot(LL, rho, type="l", ylim=c(-0.5, 0.5))
-    abline(h=0, col="red")
-    w2 <- which.min(abs(rho))
-    if( abs(rho[w2])< tolerance ){
-      abline(v=LL[w2],col="red")
-      text(LL[w1], rho[w2],paste("L=",round(LL[w2],2)), pos=2, col="red" )
-      L.est$L[3] <<- LL[w2]
-    }
-    w3 <- which.max(L.Lik)
-    plot(LL,L.Lik, type="l")
-    abline(v=LL[w3], col="purple")
-    text(LL[w3], L.Lik[w3],paste("L=",round(LL[w3],2)), pos=2, col="purple" )
-    L.est$L[4] <<- LL[w3]
-    
-    mL <- L.Lik[w3]
-    delta <- mL-1.92
-    w.ub.l <- which(LL > LL[w3])
-    w.ub <- w.ub.l[which.min( abs(L.Lik-delta)[w.ub.l])]
-    w.lb.l <- which(LL < LL[w3])
-    w.lb <- w.lb.l[which.min( abs(L.Lik-delta)[w.lb.l])]
-    #abline(h=mL, col="purple")
-    abline(h=delta, col="purple", lty=2)
-    if(length(w.ub)>0){
-      if( abs(L.Lik[w.ub]-delta)< tolerance*abs(mL) ){
-        abline(v=LL[w.ub], col="purple", lty=2)
-        L.est$L[6] <<- LL[w.ub]
-      }}
-    if(length(w.lb)>0){
-      if( abs(L.Lik[w.lb]-delta)< tolerance*abs(mL) ){
-        abline(v=LL[w.lb], col="purple", lty=2)
-        L.est$L[5] <<- LL[w.lb]
-      }}
-  })
-  return(L.est)
+  pick <- list(                    # indices of “best” λ for each curve
+    beta = which.min(abs(res$beta)),
+    post = which.max(res$post.L),
+    rho  = which.min(abs(res$rho)),
+    ll   = which.max(res$L.Lik)
+  )
+
+  base_thm <- theme_minimal(base_size = 13) +
+    theme(panel.grid    = element_line(size = 0.25),
+          panel.spacing = unit(1, "lines"))
+
+  p_beta <- ggplot(res, aes(LL, beta)) +
+    geom_hline(yintercept = 0, colour = "grey60") +
+    geom_line(size = 1.3, colour = "#1f77b4") +
+    geom_vline(xintercept = res$LL[pick$beta],
+               colour = "#1f77b4", linetype = "dashed", linewidth = 1) +
+    labs(y = expression(beta), x = NULL) + base_thm
+
+  p_post <- ggplot(res, aes(LL, post.L)) +
+    geom_line(size = 1.3, colour = "#E69F00") +
+    geom_vline(xintercept = res$LL[pick$post],
+               colour = "#E69F00", linetype = "dashed", linewidth = 1) +
+    labs(y = "Posterior", x = NULL) + base_thm
+
+  p_rho <- ggplot(res, aes(LL, rho)) +
+    geom_hline(yintercept = 0, colour = "grey60") +
+    geom_line(size = 1.3, colour = "#D62728") +
+    geom_vline(xintercept = res$LL[pick$rho],
+               colour = "#D62728", linetype = "dashed", linewidth = 1) +
+    scale_y_continuous(limits = c(-0.5, 0.5)) +
+    labs(y = expression(rho), x = expression(lambda)) + base_thm
+
+  p_ll  <- ggplot(res, aes(LL, L.Lik)) +
+    geom_line(size = 1.3, colour = "#8E44AD") +
+    geom_vline(xintercept = res$LL[pick$ll],
+               colour = "#8E44AD", linetype = "dashed", linewidth = 1) +
+    labs(y = "Log–lik.", x = expression(lambda)) + base_thm
+
+  (p_beta | p_post) / (p_rho | p_ll)   # patchwork grid
 }
 
 # UI and Server
