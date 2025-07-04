@@ -278,6 +278,9 @@ lambdaUI <- function(id, title = "Lambda (λ) Estimation Tools") {
       numericInput(ns("eps"), "Epsilon", value = 0.001, step = 0.0005),
       uiOutput(ns("aim_selector")),
       
+      uiOutput(ns("filter_cols_ui")),
+      uiOutput(ns("filter_vals_ui")),
+      
       # Restore default placeholders and clear all placeholders
       tags$hr(),
       actionButton(ns("clear"),  "Clear inputs"),
@@ -342,6 +345,33 @@ lambdaServer <- function(id) {
       )
     })
     
+    # Filter
+    output$filter_cols_ui <- renderUI({
+      req(data_raw())
+      selectInput(
+        session$ns("filter_cols"),
+        label    = "Filter columns (optional)",
+        choices  = names(data_raw()),
+        selected = character(0),
+        multiple = TRUE
+      )
+    })
+    
+    # Filter
+    output$filter_vals_ui <- renderUI({
+      req(data_raw(), input$filter_cols)
+      df <- data_raw()
+      
+      lapply(input$filter_cols, function(col) {
+        checkboxGroupInput(
+          session$ns(paste0("val_", col)),                 # e.g. val_Time
+          label   = sprintf("Keep rows where %s is …", col),
+          choices = sort(unique(df[[col]])),
+          selected = sort(unique(df[[col]]))               # start “all on”
+        )
+      })
+    })
+    
     # Clear inputs
     observeEvent(input$clear, {
       updateTextInput( session, "stim_col",   value = "")
@@ -374,6 +404,14 @@ lambdaServer <- function(id) {
       # User input
       epsilon <- input$eps
       data    <- data_raw()
+      
+      if (!is.null(input$filter_cols) && length(input$filter_cols) > 0) {
+        for (col in input$filter_cols) {
+          keep <- input[[paste0("val_", col)]]
+          if (length(keep) > 0)
+            data <- dplyr::filter(data, .data[[col]] %in% keep)
+        }
+      }
 
       Stim   <- data %>% filter(.data[[input$stim_col]] == input$stim_lvl)
       Unstim <- data %>% filter(.data[[input$stim_col]] == input$unstim_lvl)
