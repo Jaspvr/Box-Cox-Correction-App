@@ -456,11 +456,11 @@ aboutUI <- function(id) {
       shiny::tags$details(
         shiny::tags$summary(shiny::tags$h4("References")),
         shiny::tags$ol(
-          shiny::tags$li("Box GEP, Cox DR. An Analysis of Transformations. J Roy Stat Soc B. 1964."),
-          shiny::tags$li("Congdon P. Bayesian Statistical Modeling. Wiley; 2006."),
-          shiny::tags$li("Clyde M et al. Introduction to Bayesian Regression. 2025."),
-          shiny::tags$li("White KJ. Estimation of the Liquidity Trap with a Generalized Functional Form. Econometrica. 1972."),
-          shiny::tags$li("Halvorson T et al. Transplantation. 2024.")
+          shiny::tags$li("\u00A0Box GEP, Cox DR. An Analysis of Transformations. Journal of the Royal Statistical Society: Series B (Methodological). 1964;26(2):211-243. doi:10.1111/j.2517-6161.1964.tb00553.x"),
+          shiny::tags$li("\u00A0Congdon P. In: Bayesian Statistical Modeling. Second. Wiley; 2006:113."),
+          shiny::tags$li("\u00A0Clyde M, Çetinkaya-Rundel M, Rundel C, Banks D, Chai C, Huang L. Chapter 6 Introduction to Bayesian Regression | An Introduction to Bayesian Thinking. Accessed June 7, 2025. https://statswithr.github.io/book/introduction-to-bayesian-regression.html"),
+          shiny::tags$li("\u00A0White KJ. Estimation of the Liquidity Trap with a Generalized Functional Form. Econometrica. 1972;40(1):193-199. doi:10.2307/1909730"),
+          shiny::tags$li("\u00A0Halvorson T, Ivison S, Huang Q, et al. SARS-CoV-2 Variants Omicron BA.4/5 and XBB.1.5 Significantly Escape T Cell Recognition in Solid-organ Transplant Recipients Vaccinated Against the Ancestral Strain. Transplantation. 2024;108(4):e49-e62. doi:10.1097/TP.0000000000004873")
         )
       )
     )
