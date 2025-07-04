@@ -209,8 +209,9 @@ aboutUI <- function(id) {
             "yourself with the functions of the Box-Cox App. The example dataset ",
             "can be downloaded from the following link:",
             shiny::tags$a(
-              href = "20250328_PREVENT_RawData_V3.csv",
-              target = "_blank", download = NA,
+              href     = "20250328_PREVENT_RawData_V3.csv",
+              target   = "_blank",
+              download = NA,
               "20250328_PREVENT_RawData_V3.csv"
             )
           ),
