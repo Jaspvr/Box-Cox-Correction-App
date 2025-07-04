@@ -199,32 +199,256 @@ aboutUI <- function(id) {
       ), 
       # ------------------ 6. Step‑by‑step guide -----------------------------
       shiny::tags$details(
-        shiny::tags$summary(shiny::tags$h4("Step‑by‑step guide to the Box‑Cox App")),
-        shiny::tags$ol(
-          shiny::tags$li("Upload your AIM .csv or use the example."),
-          shiny::tags$li("(Optional) Estimate λ in the Lambda Estimation tab."),
-          shiny::tags$li("Compute SI or mSI."),
-          shiny::tags$li("Download transformed data.")
+        shiny::tags$summary(shiny::tags$h4("Step-by-step guide to the Box-Cox App")),
+        shiny::tags$div(
+          
+          ## ---------------------------------------------------------------------
+          shiny::tags$p(
+            "You may either upload your own AIM assay dataset in .csv format, ",
+            "or alternatively, start with an example dataset to familiarize ",
+            "yourself with the functions of the Box-Cox App. The example dataset ",
+            "can be downloaded from the following link:",
+            shiny::tags$a(
+              href = "20250328_PREVENT_RawData_V3.csv",
+              target = "_blank", download = NA,
+              "20250328_PREVENT_RawData_V3.csv"
+            )
+          ),
+          shiny::tags$p(
+            "These data are previously published SARS-CoV-2 AIM assay data from 33 ",
+            "solid organ transplant recipients measured after 3 doses of a COVID-19 ",
+            "mRNA vaccine", shiny::tags$sup("5"), "."
+          ),
+          
+          ## ---------------- File requirements ----------------------------------
+          shiny::tags$h5("File requirements for AIM assay datasets:"),
+          shiny::tags$ul(
+            shiny::tags$li("Data must be in .csv format."),
+            shiny::tags$li("Each row should represent one unique sample."),
+            shiny::tags$li(
+              "Each column should represent a variable that identifies or groups ",
+              "samples, or contains the raw AIM+ frequencies for each sample. ",
+              "Columns can contain categorical or numeric data."
+            ),
+            shiny::tags$ul(
+              shiny::tags$li(
+                shiny::HTML(
+                  "<strong>Grouping variables:</strong> These columns contain variables ",
+                  "that, together, can uniquely identify each sample (e.g., ‘Donor’, ",
+                  "‘Timepoint’ or ‘Treatment Group’ in clinical studies)."
+                )
+              ),
+              shiny::tags$li(
+                shiny::HTML(
+                  "<strong>Stimulant variable:</strong> One column should contain the ",
+                  "names of the stimulants or antigens used to stimulate each sample ",
+                  "(e.g., ‘SARS-CoV-2’, ‘CMV’, ‘Unstimulated’ or ‘PHA’)."
+                )
+              ),
+              shiny::tags$li(
+                shiny::HTML(
+                  "<strong>AIM variables:</strong> These columns should contain numerical ",
+                  "data representing frequencies of AIM+ cells measured in each sample. ",
+                  "There should be one column for each AIM or AIM pair of interest in ",
+                  "CD4+ or CD8+ T cells or other subsets (e.g., ‘CD134pCD25p_CD4p’ could ",
+                  "represent frequencies of CD4+ T cells that are CD134+/CD25+)."
+                )
+              ),
+              shiny::tags$li(
+                shiny::HTML(
+                  "<strong>Other columns:</strong> Other columns may be present in the ",
+                  "data that are not useful for calculating SI values or identifying ",
+                  "unique samples (e.g., columns containing frequencies of total CD4+ ",
+                  "or CD8+ T cells). These columns will be ignored by default."
+                )
+              )
+            ),
+            shiny::tags$li(
+              "Numerical data should use decimal format (e.g., 0.023 rather than 0,023)."
+            ),
+            shiny::tags$li(
+              "Column names should contain letters, numbers and underscores (‘_’) only ",
+              "(no spaces), but should not begin with a number."
+            ),
+            shiny::tags$li(
+              "Please see the example dataset above as a reference for the correct ",
+              "file format."
+            )
+          ),
+          
+          ## ---------------- Lambda estimation ----------------------------------
+          shiny::tags$h5("Estimating an optimal value of λ (optional)"),
+          shiny::tags$ol(
+            shiny::tags$li("Navigate to the Lambda (λ) Estimation Tools tab."),
+            shiny::tags$li(
+              "Select ‘Browse’ in the ‘Upload CSV’ box and upload your AIM dataset ",
+              "in .csv format. Ensure the .csv file complies with the file ",
+              "requirements detailed above. A message reading ‘upload complete’ will appear."
+            ),
+            shiny::tags$li(
+              "Select the column containing the stimulant/antigen values from the ",
+              "dropdown menu in the ‘Stimulant Column’ box."
+            ),
+            shiny::tags$li(
+              "Enter the names of the stimulant/antigen condition for which λ will be ",
+              "estimated into the ‘Stimulant’ box. Ensure the name entered is identical ",
+              "to the spelling in the data table."
+            ),
+            shiny::tags$li(
+              "Enter the name of the unstimulated parameter. Ensure the name entered ",
+              "is identical to the spelling in the data table."
+            ),
+            shiny::tags$li(
+              "Enter the desired value of Epsilon (ϵ). This should be a small non-zero ",
+              "value that will be added to each data point to avoid zero values, which ",
+              "is necessary for the λ-estimating functions to operate. The default is ",
+              "set to 0.001."
+            ),
+            shiny::tags$li(
+              "Select the AIM variable for which λ will be estimated from the dropdown ",
+              "menu in the ‘AIM Variable’ box."
+            ),
+            shiny::tags$li("Select ‘Run’.")
+          ),
+          
+          ## ---------------- Interpreting the data ------------------------------
+          shiny::tags$h5("Interpreting the data:"),
+          shiny::tags$p(
+            "Four graphs will be displayed, corresponding to the outputs of the four ",
+            "methods of estimating λ (described above)."
+          ),
+          shiny::tags$p(
+            "The optimal value of λ determined by each method will be displayed on the ",
+            "plot. These values can then be used in calculation of SI and mSI (see below)."
+          ),
+          
+          ## ---------------- Simple SI ------------------------------------------
+          shiny::tags$h5("Simple Box-Cox Stimulation Index (SI)"),
+          shiny::tags$ol(
+            shiny::tags$li(
+              "Enter the desired value of λ in the ‘Input lambda value’ box."
+            ),
+            shiny::tags$li(
+              "Enter the name of the unstimulated parameter in the ‘Unstimulated ",
+              "Parameter’ box. Ensure the name entered is identical to the spelling ",
+              "in the data table."
+            ),
+            shiny::tags$li(
+              "Enter the names of the stimulants/antigens used in the dataset into the ",
+              "‘Stimulants’ box. Stimulant names should be separated by commas. Ensure ",
+              "the names entered are identical to the spelling in the data table."
+            ),
+            shiny::tags$li(
+              "Upload the AIM assay dataset of interest in .csv format by selecting ",
+              "‘browse’ in the ‘Input Patient Data (CSV)’ box. Ensure the .csv file ",
+              "complies with the file requirements detailed above. A message will ",
+              "appear when the upload is complete, and a preview of the data table ",
+              "will be visible in the right panel."
+            ),
+            shiny::tags$li(
+              "Click on the ‘AIM Variables’ box and use the dropdown menu to select ",
+              "the column names that correspond to the AIM+ frequencies of each sample. ",
+              "These are the columns for which an SI will be calculated. Do not select ",
+              "columns that do not represent AIMs (such as total frequencies of CD4+ ",
+              "events among CD3+ T cells), as these will give uninformative results."
+            ),
+            shiny::tags$li(
+              "Click on the ‘Grouping Columns’ box and use the dropdown menu to select ",
+              "the column names that correspond to the grouping variables. These are ",
+              "the variables that together, will uniquely identify each sample."
+            ),
+            shiny::tags$li(
+              "Click on the ‘Stimulant Column’ box and use the dropdown menu to select ",
+              "the column name corresponding to the antigen or stimulant variable. ",
+              "This column should contain the names of the antigen/stimulant used to ",
+              "stimulate each sample and is critical for matching stimulated and ",
+              "unstimulated AIM+ frequencies."
+            ),
+            shiny::tags$li(
+              "Select ‘Download Transformed Data’. A .csv file containing the ",
+              "Box-Cox-corrected SI values for the AIM dataset will be downloaded in ",
+              "the browser. These SI data are now ready for downstream visualization, ",
+              "analysis and interpretation. Note that Box-Cox-corrected SI values for ",
+              "all samples in the unstimulated control condition will equal 1."
+            )
+          ),
+          
+          ## ---------------- Advanced mSI ---------------------------------------
+          shiny::tags$h5("Advanced Scale-Independent Modified Stimulation Index (mSI)"),
+          shiny::tags$ol(
+            shiny::tags$li(
+              "Enter the desired value of λ in the ‘Lambda (L)’ box."
+            ),
+            shiny::tags$li(
+              "Check the box labelled ‘Apply F1(L) correction’. This applies the ",
+              "scale-independent modified stimulation index (mSI) formula. Leaving this ",
+              "box unchecked will instead perform the calculation for the simple ",
+              "Box-Cox stimulation index (SI) described above."
+            ),
+            shiny::tags$li(
+              "Optional: Specify a value of theta in the box labelled ‘Theta (H)’. ",
+              "Leaving this box blank will apply the default formula for θ, which ",
+              "defines θ as a function of λ. We recommend using this default."
+            ),
+            shiny::tags$li(
+              "Specify a value of Epsilon in the ‘Epsilon’ box. This adds a small value ",
+              "(e.g., 0.001) to all AIM values prior to calculating the stimulation index, ",
+              "to avoid the presence of zeros in the dataset. This is recommended if ",
+              "your dataset contains any values of zero for AIM+ frequency values."
+            ),
+            shiny::tags$li(
+              "In the box labelled ‘Replacement value for undefined SI’, enter the ",
+              "desired value. This value will serve as a default to replace SI values ",
+              "that cannot be calculated, in cases where the AIM+ frequency of the ",
+              "unstimulated condition is much greater than the corresponding AIM+ ",
+              "frequency in the stimulated condition."
+            ),
+            shiny::tags$li(
+              "Enter the name of the unstimulated parameter in the ‘Unstimulated ",
+              "Parameter’ box. Ensure the name entered is identical to the spelling ",
+              "in the data table."
+            ),
+            shiny::tags$li(
+              "Enter the names of the stimulants/antigens used in the dataset into the ",
+              "‘Stimulants’ box. Stimulant names should be separated by commas. Ensure ",
+              "the names entered are identical to the spelling in the data table."
+            ),
+            shiny::tags$li(
+              "Upload the AIM assay dataset of interest in .csv format by selecting ",
+              "‘browse’ in the ‘Input Patient Data (CSV)’ box. Ensure the .csv file ",
+              "complies with the file requirements detailed above. A message will ",
+              "appear when the upload is complete, and a preview of the data table ",
+              "will be visible in the right panel."
+            ),
+            shiny::tags$li(
+              "Click on the ‘AIM Variables’ box and use the dropdown menu to select ",
+              "the column names that correspond to the AIM+ frequencies of each sample. ",
+              "These are the columns for which a mSI will be calculated. Do not select ",
+              "columns that do not represent AIMs (such as total frequencies of CD4+ ",
+              "events among CD3+ T cells), as these will give uninformative results."
+            ),
+            shiny::tags$li(
+              "Click on the ‘Grouping Columns’ box and use the dropdown menu to select ",
+              "the column names that correspond to the grouping variables. These are ",
+              "the variables that together, will uniquely identify each sample."
+            ),
+            shiny::tags$li(
+              "Click on the ‘Stimulant Column’ box and use the dropdown menu to select ",
+              "the column name corresponding to the antigen or stimulant variable. ",
+              "This column should contain the names of the antigen/stimulant used to ",
+              "stimulate each sample and is critical for matching stimulated and ",
+              "unstimulated AIM+ frequencies."
+            ),
+            shiny::tags$li(
+              "Select ‘Download Transformed Data’. A .csv file containing the ",
+              "Box-Cox-corrected mSI values for the AIM dataset will be downloaded in ",
+              "the browser. These SI data are now ready for downstream visualization, ",
+              "analysis and interpretation. Note that Box-Cox-corrected mSI values for ",
+              "all samples in the unstimulated control condition will equal 0.25 when ",
+              "default values are used."
+            )
+          )
         )
-      ),
-      
-      # --------------------- 7. File requirements ---------------------------
-      shiny::tags$details(
-        shiny::tags$summary(shiny::tags$h4("File requirements for AIM datasets")),
-        shiny::tags$ul(
-          shiny::tags$li("CSV format; one row per sample."),
-          shiny::tags$li("Include grouping columns, a stimulant column, and AIM‑frequency columns."),
-          shiny::tags$li("Column names: letters/numbers/underscores, no leading digits."),
-          shiny::tags$li("Numeric values in decimal notation (e.g., 0.023)."),
-          shiny::tags$li("See the example dataset for reference.")
-        )
-      ),
-      
-      # ------------------- 8. Example dataset -------------------------------
-      shiny::tags$details(
-        shiny::tags$summary(shiny::tags$h4("Download example dataset")),
-        shiny::tags$p("SARS‑CoV‑2 AIM data from 33 solid‑organ transplant recipients after three vaccine doses⁵."),
-        shiny::tags$a(href = "20250328_PREVENT_RawData_V3.csv", target = "_blank", download = NA, "Download 20250328_PREVENT_RawData_V3.csv")
       ),
       
       # ----------------------- 9. References --------------------------------
