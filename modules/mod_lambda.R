@@ -117,7 +117,7 @@ plotres <- function(res, tol = 0.1) {
     
     ## a) for Beta & rho we want the value *near 0*
     if (want_zero) {
-      if (min(abs(v)) > 0.001) return(NA_integer_)        # never close to zero
+      if (min(abs(v)) > tol) return(NA_integer_)        # never close to zero
       idx <- which.min(abs(v))
     } else {
       ## b) for post.L & L.Lik we want the maximum – but not at an edge
