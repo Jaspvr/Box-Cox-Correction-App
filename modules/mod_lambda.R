@@ -37,9 +37,13 @@ test.lambda.lik <- function(x1, x0, LL=NULL,f1=NULL, method="rlm", DAT=NULL, plo
   nona <- !is.na(x0)&!is.na(x1)
   x0 <- x0[nona]
   x1 <- x1[nona]
-  n <- length(nona)
   
-  DAT <- DAT[nona,]
+  # NEW: only subset DAT if it exists
+  if (!is.null(DAT)) {
+    DAT <- DAT[nona, , drop = FALSE]
+  }
+  
+  n <- length(nona)
   
   if(is.null(f1)){
     fb1 <- as.formula("yy~x")
@@ -67,6 +71,14 @@ test.lambda.lik <- function(x1, x0, LL=NULL,f1=NULL, method="rlm", DAT=NULL, plo
     y <- y/K
     x <- x/K
     yy <- y-x
+    
+    sx <- sd(x)
+    sy <- sd(y)
+    
+    if (length(x) < 2L || is.na(sx) || is.na(sy) || sx == 0 || sy == 0) {
+      beta[i] <- rho[i] <- L.Lik[i] <- post.b[i] <- NA_real_
+      next
+    }
     
     if(method=="lm"){
       Mb <- lm(fb1,data=DAT)
@@ -111,20 +123,24 @@ test.lambda.lik <- function(x1, x0, LL=NULL,f1=NULL, method="rlm", DAT=NULL, plo
 }
 
 plotres <- function(res, tol = 0.1) {
-  
-  pick_idx <- function(v, want_zero = FALSE) {
-    rng <- range(v, na.rm = TRUE)
+  pick_idx <- function(v, want_zero = FALSE, tol = 0.1) {
+    v_ok <- v[!is.na(v)]                 # drop the NAs first
+    if (length(v_ok) == 0)               # nothing left → give up
+      return(NA_integer_)
     
-    ## a) for Beta & rho we want the value *near 0*
-    if (want_zero) {
-      if (min(abs(v)) > tol) return(NA_integer_)        # never close to zero
-      idx <- which.min(abs(v))
-    } else {
-      ## b) for post.L & L.Lik we want the maximum – but not at an edge
-      idx <- which.max(v)
-      if (idx %in% c(1, length(v))) return(NA_integer_) # max at boundary
+    if (want_zero) {                     # Beta / ρ panels
+      v_abs <- abs(v_ok)
+      if (min(v_abs) > tol)              # far from zero everywhere
+        return(NA_integer_)
+      idx_ok <- which.min(v_abs)         # index inside v_ok
+    } else {                             # posterior / likelihood
+      idx_ok <- which.max(v_ok)
+      if (idx_ok %in% c(1, length(v_ok)))# maximum on a boundary
+        return(NA_integer_)
     }
-    idx
+    
+    ## NEW — map the position in v_ok back to the original vector v
+    which(!is.na(v))[idx_ok]             # <- return correct row index
   }
 
   # Pick the “best” λ for each curve
