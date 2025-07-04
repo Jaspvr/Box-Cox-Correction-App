@@ -129,10 +129,10 @@ plotres <- function(res, tol = 0.1) {
 
   # Pick the “best” λ for each curve
   best <- list(
-    beta = pick_idx(res$beta,  want_zero = TRUE),  # was which.min(...)
-    post = pick_idx(res$post.L),                   # was which.max(...)
-    rho  = pick_idx(res$rho,   want_zero = TRUE),  # was which.min(...)
-    ll   = pick_idx(res$L.Lik)                     # was which.max(...)
+    beta = pick_idx(res$beta,  want_zero = TRUE),
+    post = pick_idx(res$post.L),
+    rho  = pick_idx(res$rho,   want_zero = TRUE),
+    ll   = pick_idx(res$L.Lik)
   )
   
   # centre coordinates for the fallback message in each panel
@@ -210,10 +210,6 @@ plotres <- function(res, tol = 0.1) {
 
   # Four ggplots
   p_beta <- ggplot(res, aes(LL, beta)) +
-    # geom_hline(yintercept = 0, colour = "grey60") +
-    # geom_line(linewidth = 1.3, colour = "#1f77b4") +
-    # geom_vline(xintercept = res$LL[best$beta], colour = "#1f77b4",
-    #            linetype = "dashed", linewidth = 1) +
     safe_geoms(best$beta, "#1f77b4", y0 = 0) +
     add_lab("#1f77b4", best$beta) +
     
@@ -228,13 +224,9 @@ plotres <- function(res, tol = 0.1) {
     ) + base_thm + coord_cartesian(clip = "off")
 
   p_post <- ggplot(res, aes(LL, post.L)) +
-    # geom_line(linewidth = 1.3, colour = "#E69F00") +
-    # geom_vline(xintercept = res$LL[best$post], colour = "#E69F00",
-    #            linetype = "dashed", linewidth = 1) +
     safe_geoms(best$post, "#E69F00", y0 = 0) +
     add_lab("#E69F00", best$post) +
     { if (is.na(best$post))
-      # add_warn(centre_x, range(res$post.L))
       add_warn_panel()
     } +
     labs(
@@ -244,14 +236,9 @@ plotres <- function(res, tol = 0.1) {
     ) + base_thm + coord_cartesian(clip = "off")
 
   p_rho <- ggplot(res, aes(LL, rho)) +
-    # geom_hline(yintercept = 0, colour = "grey60") +
-    # geom_line(linewidth = 1.3, colour = "#D62728") +
-    # geom_vline(xintercept = res$LL[best$rho], colour = "#D62728",
-    #            linetype = "dashed", linewidth = 1) +
     safe_geoms(best$rho, "#D62728", y0 = 0) +
     add_lab("#D62728", best$rho) +
     { if (is.na(best$rho))
-      # add_warn(centre_x, c(-0.5, 0.5))
       add_warn_panel()
     } +
     scale_y_continuous(limits = c(-0.5, 0.5)) +
@@ -262,13 +249,9 @@ plotres <- function(res, tol = 0.1) {
     ) + base_thm + coord_cartesian(clip = "off")
 
   p_ll <- ggplot(res, aes(LL, L.Lik)) +
-    # geom_line(linewidth = 1.3, colour = "#8E44AD") +
-    # geom_vline(xintercept = res$LL[best$ll], colour = "#8E44AD",
-    #            linetype = "dashed", linewidth = 1) +
     safe_geoms(best$ll, "#8E44AD", y0 = 0) +
     add_lab("#8E44AD", best$ll) +
     { if (is.na(best$ll))
-      # add_warn(centre_x, range(res$L.Lik))
       add_warn_panel()
     } +
     labs(
