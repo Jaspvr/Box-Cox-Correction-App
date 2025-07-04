@@ -111,17 +111,48 @@ test.lambda.lik <- function(x1, x0, LL=NULL,f1=NULL, method="rlm", DAT=NULL, plo
 }
 
 plotres <- function(res, tol = 0.1) {
+  
+  pick_idx <- function(v, want_zero = FALSE) {
+    rng <- range(v, na.rm = TRUE)
+    
+    ## a) for Beta & rho we want the value *near 0*
+    if (want_zero) {
+      if (min(abs(v)) > 0.001) return(NA_integer_)        # never close to zero
+      idx <- which.min(abs(v))
+    } else {
+      ## b) for post.L & L.Lik we want the maximum – but not at an edge
+      idx <- which.max(v)
+      if (idx %in% c(1, length(v))) return(NA_integer_) # max at boundary
+    }
+    idx
+  }
 
   # Pick the “best” λ for each curve
+  # best <- list(
+  #   beta = which.min(abs(res$beta), want_zero = TRUE),
+  #   post = which.max(res$post.L),
+  #   rho  = which.min(abs(res$rho), want_zero = TRUE),
+  #   ll   = which.max(res$L.Lik)
+  # )
   best <- list(
-    beta = which.min(abs(res$beta)),
-    post = which.max(res$post.L),
-    rho  = which.min(abs(res$rho)),
-    ll   = which.max(res$L.Lik)
+    beta = pick_idx(res$beta,  want_zero = TRUE),  # was which.min(...)
+    post = pick_idx(res$post.L),                   # was which.max(...)
+    rho  = pick_idx(res$rho,   want_zero = TRUE),  # was which.min(...)
+    ll   = pick_idx(res$L.Lik)                     # was which.max(...)
+  )
+  
+  # centre coordinates for the fallback message in each panel
+  centre_x <- mean(range(res$LL))
+  centre_y <- list(
+    beta = mean(range(res$beta)),
+    post = mean(range(res$post.L)),
+    rho  = 0,                                # we scale Rho to −0.5 ↔ 0.5 later
+    ll   = mean(range(res$L.Lik))
   )
 
   # Helper that writes λ value just above the panel
   add_lab <- function(col, idx, digits = 2) {
+    if (is.na(idx)) return(annotate("blank", 0, 0))
     annotate(
       "text",
       x      = res$LL[idx],
@@ -131,6 +162,32 @@ plotres <- function(res, tol = 0.1) {
       colour = col,
       label  = bquote(lambda==.(round(res$LL[idx], digits))),
       size   = 4
+    )
+  }
+  
+  # add_warn <- function(xc, yc) {
+  #   annotate(
+  #     "text",
+  #     x = xc, y = yc,
+  #     label = "Optimal λ not defined",
+  #     colour = "grey40", fontface = "italic", size = 4
+  #   )
+  # }
+  add_warn <- function(xc, y_range, txt = "Optimal λ not defined",
+                       y_pos = 0.60, txt_size = 5.5) {
+    
+    yy <- y_range[1] + y_pos * diff(y_range)
+    
+    annotate(
+      "label",
+      x = xc, y = yy,
+      label   = txt,
+      size    = txt_size,
+      label.size = 0,
+      fill    = "white",
+      colour  = "grey20",
+      fontface = "italic",
+      hjust = .5, vjust = .5
     )
   }
 
@@ -150,6 +207,11 @@ plotres <- function(res, tol = 0.1) {
     geom_vline(xintercept = res$LL[best$beta], colour = "#1f77b4",
                linetype = "dashed", linewidth = 1) +
     add_lab("#1f77b4", best$beta) +
+    
+    { if (is.na(best$beta))
+      add_warn(centre_x, range(res$beta))
+    } +
+    
     labs(
       title = "Beta (β) Coefficient Method\n(Linear Regression)",
       y     = "Beta (β) Coefficient",
@@ -161,6 +223,9 @@ plotres <- function(res, tol = 0.1) {
     geom_vline(xintercept = res$LL[best$post], colour = "#E69F00",
                linetype = "dashed", linewidth = 1) +
     add_lab("#E69F00", best$post) +
+    { if (is.na(best$post))
+      add_warn(centre_x, range(res$post.L))
+    } +
     labs(
       title = "Posterior Probability Distribution Method",
       y     = "Posterior P(λ)",
@@ -173,6 +238,9 @@ plotres <- function(res, tol = 0.1) {
     geom_vline(xintercept = res$LL[best$rho], colour = "#D62728",
                linetype = "dashed", linewidth = 1) +
     add_lab("#D62728", best$rho) +
+    { if (is.na(best$rho))
+      add_warn(centre_x, c(-0.5, 0.5))
+    } +
     scale_y_continuous(limits = c(-0.5, 0.5)) +
     labs(
       title = "Spearman Correlation Method",
@@ -185,6 +253,9 @@ plotres <- function(res, tol = 0.1) {
     geom_vline(xintercept = res$LL[best$ll], colour = "#8E44AD",
                linetype = "dashed", linewidth = 1) +
     add_lab("#8E44AD", best$ll) +
+    { if (is.na(best$ll))
+      add_warn(centre_x, range(res$L.Lik))
+    } +
     labs(
       title = "Likelihood Function Method",
       y     = "Likelihood L(λ)",
