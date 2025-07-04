@@ -126,7 +126,7 @@ plotres <- function(res, tol = 0.1) {
       "text",
       x      = res$LL[idx],
       y      = Inf,         # top edge
-      vjust  = 0.1,       # push outside panel
+      vjust  = -0.2,
       hjust  = .5,
       colour = col,
       label  = bquote(lambda==.(round(res$LL[idx], digits))),
@@ -136,15 +136,11 @@ plotres <- function(res, tol = 0.1) {
 
   base_thm <- theme_minimal(base_size = 13) +
     theme(
-      panel.grid  = element_line(linewidth = 0.25),
-      panel.spacing = unit(1.2, "lines"),
-      plot.margin = margin(t = 30, r = 22, b = 8, l = 8),   # extra space
-      plot.title  = element_text(margin = margin(b = 8))    # gap below title
-      # plot.title    = element_text(
-      #   size = rel(0.8),   # 80 % of base_size
-      #   face = "bold",
-      #   lineheight = 1.05,
-      #   margin = margin(b = 6))
+      panel.grid     = element_line(linewidth = .25),
+      panel.spacing  = unit(2.5, "lines"),
+      plot.margin    = margin(t = 20, r = 18, b = 14, l = 18),
+      plot.title.position = "plot",
+      plot.title          = element_text(size = rel(.9), hjust = 0.5, margin = margin(b = 16)),
     )
 
   # Four ggplots
@@ -155,7 +151,7 @@ plotres <- function(res, tol = 0.1) {
                linetype = "dashed", linewidth = 1) +
     add_lab("#1f77b4", best$beta) +
     labs(
-      title = "Beta (β) Coefficient Method (Linear Regression)",
+      title = "Beta (β) Coefficient Method\n(Linear Regression)",
       y     = "Beta (β) Coefficient",
       x     = "Lambda (λ)"
     ) + base_thm + coord_cartesian(clip = "off")
