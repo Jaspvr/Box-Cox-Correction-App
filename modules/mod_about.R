@@ -9,11 +9,6 @@ aboutUI <- function(id) {
       class = "container",
       
       # ------------------------------ 1. Overview ---------------------------
-      # shiny::tags$details(
-      #   shiny::tags$summary(shiny::tags$h4("Overview")),
-      #   shiny::tags$p("Analysis of T‑cell activation‑induced marker (AIM) assay data requires normalization of AIM\u2009+ cell frequencies to ‘background’ AIM\u2009+ frequencies in an unstimulated control. Subtracting or dividing by the unstimulated control each have specific disadvantages and can amplify technical variability in the assay."),
-      #   shiny::tags$p("The Box‑Cox correction, based on the transformation proposed by Box & Cox in 1964\u00b9, combines features of division and linear subtraction to better match the mathematical properties of AIM datasets, reducing technical variability and improving signal detection.")
-      # ),
       shiny::tags$details(
         shiny::tags$summary(shiny::tags$h4("Overview")),
         shiny::tags$p("Analysis of T cell activation-induced marker (AIM) assay data requires normalization of AIM+ cell frequencies to ‘background’ AIM+ frequencies in an unstimulated control. Subtracting or dividing by the unstimulated control each have specific disadvantages in different situations and can amplify technical variability in the assay."),
@@ -21,16 +16,6 @@ aboutUI <- function(id) {
       ),
       
       # ------------------ 2. Application of the Box‑Cox method -------------
-      # shiny::tags$details(
-      #   shiny::tags$summary(shiny::tags$h4("Application of the Box‑Cox method to AIM assay data")),
-      #   shiny::tags$ol(
-      #     shiny::tags$li(htmltools::HTML("Apply the transformation: $$\\text{BoxCox}(x,\\;\\lambda \\in [0,1]) = \\begin{cases} \\dfrac{x^{\\lambda}-1}{\\lambda}, & \\lambda \\neq 0 \\; ; \\; \\ln x, & \\lambda = 0 \\end{cases}$$")),
-      #     shiny::tags$li(htmltools::HTML("Net stimulated value: $$\\beta = \\text{BoxCox}(\\%\\text{AIM}^{+}_{\\text{stim}}) - \\text{BoxCox}(\\%\\text{AIM}^{+}_{\\text{unstim}})$$")),
-      #     shiny::tags$li(htmltools::HTML("Return to original scale: $$\\text{SI} = \\text{invBoxCox}(\\beta,\\;\\lambda) = \\begin{cases} (\\lambda\\beta + 1)^{1/\\lambda}, & \\lambda \\neq 0 ;\\; e^{\\beta}, & \\lambda = 0 \\end{cases}$$"))
-      #   ),
-      #   shiny::tags$p("Choose λ (0–1) carefully, considering analysis goals and dataset properties.")
-      # ),
-      
       shiny::tags$details(
         shiny::tags$summary(shiny::tags$h4("Application of the Box-Cox method to AIM assay data")),
         shiny::tags$p("The simplest method of Box-Cox transformation for AIM assay data takes the following three steps, incorporating the stimulated and unstimulated AIM values and an arbitrary parameter \u03BB:"),
@@ -57,13 +42,6 @@ aboutUI <- function(id) {
       ),
       
       # ------------------------ 3. Advanced use -----------------------------
-      # shiny::tags$details(
-      #   shiny::tags$summary(shiny::tags$h4("Advanced use of the Box‑Cox method")),
-      #   shiny::tags$p("When λ approaches 1, the simple SI introduces a scale‑changing translation. Adding a correction parameter θ yields the modified stimulation index (mSI):"),
-      #   shiny::tags$p(htmltools::HTML("$$m\\text{SI}_{i}=g_{\\lambda,\\theta}(s_{i},u_{i}) = \\begin{cases} \\dfrac{s_{i}-u_{i}+1-\\lambda\\theta}{1-\\lambda}, & 0 < \\lambda \\le 1 ;\\; \\dfrac{s_{i}}{u_{i}}, & \\lambda = 0 \\end{cases}$$")),
-      #   shiny::tags$p("Set θ = 0 to recover the simple SI; the default dynamic θ(λ) is recommended for λ > 0.7.")
-      # ),
-      
       shiny::tags$details(
         shiny::tags$summary(shiny::tags$h4("Advanced use of the Box‑Cox method")),
         shiny::tags$p("A limitation of the simple Box‑Cox method above is the presence of a linear translation when λ approaches 1, which changes the scale of the data. To overcome this, the method can be modified to introduce a correction parameter θ, generating a modified stimulation index (mSI):"),
