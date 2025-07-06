@@ -349,6 +349,13 @@ aboutUI <- function(id) {
           shiny::tags$h5("Simple Box-Cox Stimulation Index (SI)"),
           shiny::tags$ol(
             shiny::tags$li(
+              "Upload the AIM assay dataset of interest in .csv format by selecting ",
+              "‘browse’ in the ‘Upload CSV’ box. Ensure the .csv file ",
+              "complies with the file requirements detailed above. A message will ",
+              "appear when the upload is complete, and a preview of the data table ",
+              "will be visible in the right panel."
+            ),
+            shiny::tags$li(
               "Enter the desired value of λ in the ‘Input lambda value’ box."
             ),
             shiny::tags$li(
@@ -360,13 +367,6 @@ aboutUI <- function(id) {
               "Enter the names of the stimulants/antigens used in the dataset into the ",
               "‘Stimulants’ box. Stimulant names should be separated by commas. Ensure ",
               "the names entered are identical to the spelling in the data table."
-            ),
-            shiny::tags$li(
-              "Upload the AIM assay dataset of interest in .csv format by selecting ",
-              "‘browse’ in the ‘Input Patient Data (CSV)’ box. Ensure the .csv file ",
-              "complies with the file requirements detailed above. A message will ",
-              "appear when the upload is complete, and a preview of the data table ",
-              "will be visible in the right panel."
             ),
             shiny::tags$li(
               "Click on the ‘AIM Variables’ box and use the dropdown menu to select ",
@@ -399,6 +399,13 @@ aboutUI <- function(id) {
           ## ---------------- Advanced mSI ---------------------------------------
           shiny::tags$h5("Advanced Scale-Independent Modified Stimulation Index (mSI)"),
           shiny::tags$ol(
+            shiny::tags$li(
+              "Upload the AIM assay dataset of interest in .csv format by selecting ",
+              "‘browse’ in the ‘Upload CSV’ box. Ensure the .csv file ",
+              "complies with the file requirements detailed above. A message will ",
+              "appear when the upload is complete, and a preview of the data table ",
+              "will be visible in the right panel."
+            ),
             shiny::tags$li(
               "Enter the desired value of λ in the ‘Lambda (L)’ box."
             ),
@@ -435,13 +442,6 @@ aboutUI <- function(id) {
               "Enter the names of the stimulants/antigens used in the dataset into the ",
               "‘Stimulants’ box. Stimulant names should be separated by commas. Ensure ",
               "the names entered are identical to the spelling in the data table."
-            ),
-            shiny::tags$li(
-              "Upload the AIM assay dataset of interest in .csv format by selecting ",
-              "‘browse’ in the ‘Input Patient Data (CSV)’ box. Ensure the .csv file ",
-              "complies with the file requirements detailed above. A message will ",
-              "appear when the upload is complete, and a preview of the data table ",
-              "will be visible in the right panel."
             ),
             shiny::tags$li(
               "Click on the ‘AIM Variables’ box and use the dropdown menu to select ",
