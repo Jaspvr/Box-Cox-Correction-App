@@ -3,6 +3,7 @@ boxcoxUI <- function(id, title = "Simple Box-Cox Stimulation Index (SI)") {
   tabPanel(
     title,
     sidebarPanel(
+      fileInput(   ns("patientData"),  "Upload CSV"),
       numericInput(ns("lambda"),       "Lambda (λ) value", value = 0.5),
       
       numericInput(ns("eps"), "Epsilon", value = 0.001,
@@ -11,7 +12,6 @@ boxcoxUI <- function(id, title = "Simple Box-Cox Stimulation Index (SI)") {
       textInput(   ns("unstimulated"), "Unstimulated Parameter", value = "DMSO"),
       textAreaInput(ns("stimulants"),  "Stimulants (comma separated)",
                     "SARSCoV2_Spike"),
-      fileInput(   ns("patientData"),  "Upload CSV"),
       selectInput( ns("AIMVariables"), "AIM Variables",   choices = NULL, multiple = TRUE),
       selectInput( ns("grouping_columns"),    "Grouping Columns",choices = NULL, multiple = TRUE),
       selectInput( ns("stim_column"),      "Stimulant Column",choices = NULL),

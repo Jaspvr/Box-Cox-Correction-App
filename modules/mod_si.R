@@ -3,6 +3,7 @@ siUI <- function(id, title = "Advanced Scale-Independent Modified Stimulation In
   tabPanel(
     title,
     sidebarPanel(
+      fileInput(   ns("patientData"),  "Upload CSV"),
       numericInput(ns("lambda"),     "Lambda (λ) value",            value = 0.5, step = 0.05, min = 0, max = 1),
       checkboxInput(ns("corrected"), "Apply F1(λ) correction", value = TRUE),
       numericInput(ns("theta_H"),    "Theta (θ) – leave NA for automatic", value = NA, step = 0.05),
@@ -11,7 +12,6 @@ siUI <- function(id, title = "Advanced Scale-Independent Modified Stimulation In
       textInput(   ns("unstimulated"), "Unstimulated Parameter", value = "DMSO"),
       textAreaInput(ns("stimulants"),  "Stimulants (comma separated)",
                     "SARSCoV2_Spike"),
-      fileInput(   ns("patientData"),  "Upload CSV)"),
       selectInput( ns("AIMVariables"),     "AIM Variables",      choices = NULL, multiple = TRUE),
       selectInput( ns("grouping_columns"), "Grouping Columns",    choices = NULL, multiple = TRUE),
       selectInput( ns("stim_column"),      "Stimulant Column",    choices = NULL),
