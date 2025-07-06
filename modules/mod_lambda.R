@@ -288,11 +288,11 @@ lambdaUI <- function(id, title = "Lambda (λ) Estimation Tools") {
     title,
     sidebarPanel(
       fileInput(ns("csv"), "Upload CSV", accept = ".csv"),
-      textInput(ns("stim_col"),   "Stimulant Column Name",  "Stim"),
+      selectInput(ns("stim_col"), "Stimulant Column", choices = NULL),
       textInput(ns("stim_lvl"),   "Stimulant",            "SARSCoV2_Spike"),
       textInput(ns("unstim_lvl"), "Unstimulated Parameter",          "DMSO"),
       numericInput(ns("eps"), "Epsilon", value = 0.001, step = 0.0005),
-      uiOutput(ns("aim_selector")),
+      selectInput(ns("aim_var"), "AIM Variable (column)", choices = NULL),
       
       uiOutput(ns("filter_cols_ui")),
       uiOutput(ns("filter_vals_ui")),
@@ -350,14 +350,22 @@ lambdaServer <- function(id) {
       )
     })
     
-    # Populate AIM selector
-    output$aim_selector <- renderUI({
+    observe({
       req(data_raw())
-      selectInput(
-        session$ns("aim_var"),
-        "AIM Variable (column)",
+      updateSelectInput(
+        session, "stim_col",
         choices  = names(data_raw()),
-        selected = names(data_raw())[1]
+        selected = character(0)   # no default pre-selected
+      )
+    })
+    
+    # # Populate AIM selector
+    observe({
+      req(data_raw())
+      updateSelectInput(
+        session, "aim_var",
+        choices  = names(data_raw()),
+        selected = character(0)  # nothing pre-selected
       )
     })
     
@@ -390,7 +398,8 @@ lambdaServer <- function(id) {
     
     # Clear inputs
     observeEvent(input$clear, {
-      updateTextInput( session, "stim_col",   value = "")
+      updateSelectInput(session, "stim_col",   selected = character(0))
+      updateSelectInput(session, "aim_var",    selected = character(0))
       updateTextInput( session, "stim_lvl",   value = "")
       updateTextInput( session, "unstim_lvl", value = "")
       updateNumericInput(session, "eps",      value = NA)
@@ -398,7 +407,8 @@ lambdaServer <- function(id) {
     
     # Reset inputs to defaults
     observeEvent(input$reset, {
-      updateTextInput( session, "stim_col",   value = defaults$stim_col)
+      updateSelectInput(session, "stim_col",   selected = character(0))
+      updateSelectInput(session, "aim_var",    selected = character(0))
       updateTextInput( session, "stim_lvl",   value = defaults$stim_lvl)
       updateTextInput( session, "unstim_lvl", value = defaults$unstim_lvl)
       updateNumericInput(session, "eps",      value = defaults$eps)
