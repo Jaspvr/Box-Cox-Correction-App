@@ -309,6 +309,16 @@ aboutUI <- function(id) {
               "Select the AIM variable for which λ will be estimated from the dropdown ",
               "menu in the ‘AIM Variable’ box."
             ),
+            shiny::tags$li(
+              shiny::tags$strong("Optional:"), " Filter for a desired subset of the data using the ‘Filter columns (optional)’ tab. ",
+              "This can be helpful when one or more of the λ-estimation methods fails to estimate an optimal value of lambda on the entire dataset. ",
+              "Analyses can then be run individually on specific subsets of the data.",
+              shiny::tags$ul(
+                shiny::tags$li("Select one or more columns for which to filter for desired values."),
+                shiny::tags$li("A checklist will appear containing values present in that column."),
+                shiny::tags$li("De-select the values you wish to exclude from that column, leaving the desired values selected.")
+              )
+            ),
             shiny::tags$li("Select ‘Run’.")
           ),
           
