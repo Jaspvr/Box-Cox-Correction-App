@@ -5,6 +5,40 @@ aboutUI <- function(id) {
     title = "About",
     shiny::withMathJax(),
     
+    tags$head(
+      tags$style(HTML(
+        "
+    /* Make the whole summary clickable */
+    details > summary {
+      cursor: pointer;
+      user-select: none;
+      list-style: none;  /* removes default disclosure arrow */
+      display: flex;
+      align-items: center;
+    }
+
+    /* Add a custom disclosure arrow */
+    details > summary::before {
+      content: '\\25B6'; /* ▶ right-pointing triangle */
+      display: inline-block;
+      margin-right: 0.5em;
+      transition: transform 0.2s ease-in-out;
+    }
+
+    /* Rotate arrow when open */
+    details[open] > summary::before {
+      transform: rotate(90deg); /* ▶ becomes ▼ */
+    }
+
+    /* OPTIONAL: highlight summary on hover */
+    details > summary:hover {
+      background-color: #f0f0f0;
+      border-radius: 4px;
+    }
+    "
+      ))
+    ),
+    
     shiny::tags$div(
       class = "container",
       
